@@ -1,5 +1,0 @@
-# 本地/开发：java -jar app.jar 或 IDE 运行（默认 spring.profiles.active=dev）
-logging:
-  level:
-    root: INFO
-    com.smartelderly: DEBUG
