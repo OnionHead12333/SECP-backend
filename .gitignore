@@ -1,0 +1,25 @@
+
+# Java 编译输出
+backend/target/
+target/
+*.class
+
+
+# 日志文件
+*.log
+
+# IDE 配置文件
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# 敏感配置文件
+config/application-local.properties
+.env

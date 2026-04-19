@@ -11,6 +11,7 @@ public final class SecurityUtils {
     private SecurityUtils() {
     }
 
+    // 获取当前登录用户的认证信息，如果没有认证或认证信息无效，则抛出401异常
     public static AuthPrincipal requireAuth() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -23,6 +24,7 @@ public final class SecurityUtils {
         return authPrincipal;
     }
 
+    // 验证当前登录用户的角色是否为expected，如果不是则抛出403异常
     public static AuthPrincipal requireRole(UserRole expected) {
         AuthPrincipal p = requireAuth();
         if (p.role() != expected) {
