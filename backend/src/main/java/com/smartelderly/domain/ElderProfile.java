@@ -1,7 +1,12 @@
 package com.smartelderly.domain;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -19,8 +24,27 @@ public class ElderProfile {
 
     private Long claimedUserId;
 
-    @Column(nullable = false)
-    private String status; // 'unclaimed' / 'claimed'
+    public Long getId() {
+        return id;
+    }
 
-    private Long createdByChildId;
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Long getClaimedUserId() {
+        return claimedUserId;
+    }
+
+    public void setClaimedUserId(Long claimedUserId) {
+        this.claimedUserId = claimedUserId;
+    }
 }
