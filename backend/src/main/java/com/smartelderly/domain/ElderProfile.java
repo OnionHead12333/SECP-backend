@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -24,6 +26,15 @@ public class ElderProfile {
 
     @Column(name = "claimed_user_id")
     private Long claimedUserId;
+
+    @Column(name = "location_permission_foreground")
+    private Boolean locationPermissionForeground;
+
+    @Column(name = "location_permission_background")
+    private Boolean locationPermissionBackground;
+
+    @Column(name = "permission_updated_at")
+    private LocalDateTime permissionUpdatedAt;
 
     public Long getId() {
         return id;
