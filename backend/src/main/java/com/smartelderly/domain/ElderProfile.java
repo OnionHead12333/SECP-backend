@@ -19,6 +19,9 @@ public class ElderProfile {
     @Column(name = "name", nullable = false, length = 30)
     private String name;
 
+    @Column(name = "phone", nullable = false, length = 20)
+    private String phone;
+
     @Column(name = "claimed_user_id")
     private Long claimedUserId;
 
@@ -45,6 +48,14 @@ public class ElderProfile {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public Long getClaimedUserId() {
