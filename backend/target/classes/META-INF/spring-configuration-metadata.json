@@ -1,0 +1,34 @@
+{
+  "groups": [
+    {
+      "name": "app",
+      "type": "com.smartelderly.config.AppProperties",
+      "sourceType": "com.smartelderly.config.AppProperties"
+    },
+    {
+      "name": "app.cors",
+      "type": "com.smartelderly.config.AppProperties$Cors",
+      "sourceType": "com.smartelderly.config.AppProperties",
+      "sourceMethod": "public com.smartelderly.config.AppProperties.Cors getCors() "
+    },
+    {
+      "name": "app.jwt",
+      "type": "com.smartelderly.config.AppProperties$Jwt",
+      "sourceType": "com.smartelderly.config.AppProperties",
+      "sourceMethod": "public com.smartelderly.config.AppProperties.Jwt getJwt() "
+    }
+  ],
+  "properties": [
+    {
+      "name": "app.cors.allowed-origins",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.smartelderly.config.AppProperties$Cors"
+    },
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "sourceType": "com.smartelderly.config.AppProperties$Jwt"
+    }
+  ],
+  "hints": []
+}

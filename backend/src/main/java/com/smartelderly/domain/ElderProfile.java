@@ -8,15 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "elder_profiles")
 public class ElderProfile {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 30)
+    @Column(nullable = false)
     private String name;
 
     @Column(name = "phone", nullable = false, length = 20)
@@ -24,15 +24,6 @@ public class ElderProfile {
 
     @Column(name = "claimed_user_id")
     private Long claimedUserId;
-
-    @Column(name = "location_permission_foreground")
-    private Boolean locationPermissionForeground;
-
-    @Column(name = "location_permission_background")
-    private Boolean locationPermissionBackground;
-
-    @Column(name = "permission_updated_at")
-    private LocalDateTime permissionUpdatedAt;
 
     public Long getId() {
         return id;
@@ -64,29 +55,5 @@ public class ElderProfile {
 
     public void setClaimedUserId(Long claimedUserId) {
         this.claimedUserId = claimedUserId;
-    }
-
-    public Boolean getLocationPermissionForeground() {
-        return locationPermissionForeground;
-    }
-
-    public void setLocationPermissionForeground(Boolean locationPermissionForeground) {
-        this.locationPermissionForeground = locationPermissionForeground;
-    }
-
-    public Boolean getLocationPermissionBackground() {
-        return locationPermissionBackground;
-    }
-
-    public void setLocationPermissionBackground(Boolean locationPermissionBackground) {
-        this.locationPermissionBackground = locationPermissionBackground;
-    }
-
-    public LocalDateTime getPermissionUpdatedAt() {
-        return permissionUpdatedAt;
-    }
-
-    public void setPermissionUpdatedAt(LocalDateTime permissionUpdatedAt) {
-        this.permissionUpdatedAt = permissionUpdatedAt;
     }
 }

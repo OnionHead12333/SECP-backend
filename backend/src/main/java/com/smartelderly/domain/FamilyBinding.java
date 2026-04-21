@@ -1,61 +1,26 @@
 package com.smartelderly.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "family_bindings")
 public class FamilyBinding {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "elder_profile_id", nullable = false)
+    @Column(nullable = false)
     private Long elderProfileId;
 
-    @Column(name = "child_user_id", nullable = false)
+    @Column(nullable = false)
     private Long childUserId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 32)
-    private BindingStatus status = BindingStatus.pending;
+    private String relation;
 
-    public Long getId() {
-        return id;
-    }
+    private Boolean isPrimary;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getElderProfileId() {
-        return elderProfileId;
-    }
-
-    public void setElderProfileId(Long elderProfileId) {
-        this.elderProfileId = elderProfileId;
-    }
-
-    public Long getChildUserId() {
-        return childUserId;
-    }
-
-    public void setChildUserId(Long childUserId) {
-        this.childUserId = childUserId;
-    }
-
-    public BindingStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(BindingStatus status) {
-        this.status = status;
-    }
+    @Column(nullable = false)
+    private String status; // 'pending' / 'active' / 'rejected' / 'removed'
 }

@@ -38,9 +38,13 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
+                                "/v2/api-docs",
                                 "/v3/api-docs",
                                 "/v3/api-docs/**")
                                 .permitAll()
+                        // 登录和注册接口放行 (V1)
+                        // 注意：Spring Security 在匹配时，通常不包含 context-path
+                        .requestMatchers("/v1/auth/login", "/api/v1/auth/login", "/v1/auth/register", "/api/v1/auth/register").permitAll()
                         // 仅 dev profile 下会注册对应 controller；这里放行即可
                         .requestMatchers("/v1/dev/**").permitAll()
                         .requestMatchers("/v1/**").authenticated()
