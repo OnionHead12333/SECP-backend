@@ -3,7 +3,7 @@
 backend/target/
 target/
 *.class
-
+**/target/
 
 # 日志文件
 *.log

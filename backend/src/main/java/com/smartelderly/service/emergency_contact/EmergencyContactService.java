@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.smartelderly.api.ApiException;
 import com.smartelderly.api.ApiResponse;
 import com.smartelderly.api.emergency_contact.dto.AddEmergencyContactRequest;
+import com.smartelderly.api.emergency_contact.dto.ElderAddEmergencyContactRequest;
+import com.smartelderly.api.emergency_contact.dto.ElderEmergencyContactResponse;
 import com.smartelderly.api.emergency_contact.dto.EmergencyContactResponse;
 import com.smartelderly.api.emergency_contact.dto.UpdateEmergencyContactRequest;
 import com.smartelderly.domain.ElderProfileRepository;
@@ -251,6 +253,108 @@ public class EmergencyContactService {
         emergencyContactRepository.saveAll(remainingContacts);
 
         return ApiResponse.ok("success", null);
+    }
+
+    /**
+     * 老人端：通过手机号查询紧急联系人列表
+     * 
+     * @param elderPhone 老人手机号
+     * @return ApiResponse 包含紧急联系人列表（不包含note字段）
+     */
+    @Transactional(readOnly = true)
+    public ApiResponse<List<ElderEmergencyContactResponse>> getElderEmergencyContacts(String elderPhone) {
+        // 通过手机号找到老人档案
+        var elderProfile = elderProfileRepository.findByPhone(elderPhone)
+                .orElseThrow(() -> new ApiException(4001, "elder profile not found"));
+
+        // 查询该老人的紧急联系人列表，按priority升序排列
+        List<EmergencyContact> contacts = emergencyContactRepository
+                .findByElderProfileIdOrderByPriorityAsc(elderProfile.getId());
+
+        // 转换为老人端Response对象
+        List<ElderEmergencyContactResponse> responses = contacts.stream()
+                .map(contact -> new ElderEmergencyContactResponse(
+                        contact.getId(),
+                        contact.getName(),
+                        contact.getPhone(),
+                        contact.getRelation(),
+                        contact.getPriority(),
+                        contact.getPriority() == 1  // isPrimary: priority == 1
+                ))
+                .collect(Collectors.toList());
+
+        return ApiResponse.ok(responses);
+    }
+
+    /**
+     * 老人端：新增紧急联系人
+     * 同一老人下的手机号必须唯一（去重）
+     * 如果isPrimary=true，则该联系人为priority=1，其他联系人顺延
+     * 
+     * @param request 新增请求
+     * @return ApiResponse 包含新增后的完整联系人列表
+     */
+    @Transactional
+    public ApiResponse<List<ElderEmergencyContactResponse>> addElderEmergencyContact(
+            ElderAddEmergencyContactRequest request) {
+        // 通过手机号找到老人档案
+        var elderProfile = elderProfileRepository.findByPhone(request.getElderPhone())
+                .orElseThrow(() -> new ApiException(4001, "elder profile not found"));
+
+        Long elderId = elderProfile.getId();
+
+        // 检查同一老人下是否已存在该手机号（去重）
+        if (emergencyContactRepository.existsByElderProfileIdAndPhone(elderId, request.getPhone())) {
+            throw new ApiException(409, "该老人下该手机号的紧急联系人已存在");
+        }
+
+        // 确定priority
+        Integer priority;
+        if (request.getIsPrimary() != null && request.getIsPrimary()) {
+            // 如果isPrimary=true，则设为priority=1，其他联系人顺延
+            List<EmergencyContact> existingContacts = emergencyContactRepository
+                    .findByElderProfileIdOrderByPriorityAsc(elderId);
+
+            // 将所有现有联系人的priority加1（下降一档）
+            for (EmergencyContact contact : existingContacts) {
+                contact.setPriority(contact.getPriority() + 1);
+            }
+
+            // 批量保存调整后的联系人
+            emergencyContactRepository.saveAll(existingContacts);
+
+            priority = 1;
+        } else {
+            priority = 2;
+        }
+
+        // 创建新的紧急联系人
+        EmergencyContact contact = new EmergencyContact();
+        contact.setElderProfileId(elderId);
+        contact.setName(request.getName());
+        contact.setPhone(request.getPhone());
+        contact.setRelation(request.getRelation());
+        contact.setPriority(priority);
+
+        // 保存到数据库
+        emergencyContactRepository.save(contact);
+
+        // 返回新增后的完整联系人列表
+        List<EmergencyContact> updatedContacts = emergencyContactRepository
+                .findByElderProfileIdOrderByPriorityAsc(elderId);
+
+        List<ElderEmergencyContactResponse> responses = updatedContacts.stream()
+                .map(c -> new ElderEmergencyContactResponse(
+                        c.getId(),
+                        c.getName(),
+                        c.getPhone(),
+                        c.getRelation(),
+                        c.getPriority(),
+                        c.getPriority() == 1  // isPrimary: priority == 1
+                ))
+                .collect(Collectors.toList());
+
+        return ApiResponse.ok("created", responses);
     }
 
     /**
