@@ -5,11 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import lombok.Data;
 
 @Data
 @Entity
@@ -36,6 +36,25 @@ public class ElderProfile {
 
     @Column(name = "permission_updated_at")
     private LocalDateTime permissionUpdatedAt;
+
+    @Column(name = "created_by_child_id")
+    private Long createdByChildId;
+
+    @Column(name = "status", length = 20)
+    private String status; // unclaimed / claimed，与表 elder_profiles.status 一致
+
+    /**
+     * 与库表 NOT NULL 一致：Hibernate 若插入显式 null 会绕开列默认值，需在此补默认。
+     */
+    @PrePersist
+    void applyPermissionDefaults() {
+        if (locationPermissionForeground == null) {
+            locationPermissionForeground = false;
+        }
+        if (locationPermissionBackground == null) {
+            locationPermissionBackground = false;
+        }
+    }
 
     public Long getId() {
         return id;

@@ -7,7 +7,9 @@ import com.smartelderly.api.dto.ApiResponse;
 import com.smartelderly.api.dto.AuthResponse;
 import com.smartelderly.api.dto.LoginRequest;
 import com.smartelderly.api.dto.RegisterRequest;
+import com.smartelderly.api.dto.RegisterChildWithEldersRequest;
 import com.smartelderly.domain.User;
+import com.smartelderly.service.AuthChildRegistrationService;
 import com.smartelderly.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,6 +23,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AuthChildRegistrationService authChildRegistrationService;
 
     /**
      * 用户登录接口
@@ -88,5 +93,14 @@ public class AuthController {
                 .familyCount(0)
                 .build();
         return ApiResponse.success("注册成功", resp);
+    }
+
+    /**
+     * 子女注册并绑定老人主体（与移动端多步表单对应）。
+     */
+    @PostMapping("/register-child-with-elders")
+    public ApiResponse<AuthResponse> registerChildWithElders(
+            @Valid @RequestBody RegisterChildWithEldersRequest request) {
+        return authChildRegistrationService.registerChildWithElders(request);
     }
 }

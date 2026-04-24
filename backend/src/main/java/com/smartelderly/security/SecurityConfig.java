@@ -44,7 +44,14 @@ public class SecurityConfig {
                                 .permitAll()
                         // 登录和注册接口放行 (V1)
                         // 注意：Spring Security 在匹配时，通常不包含 context-path
-                        .requestMatchers("/v1/auth/login", "/api/v1/auth/login", "/v1/auth/register", "/api/v1/auth/register").permitAll()
+                        .requestMatchers(
+                                        "/v1/auth/login",
+                                        "/api/v1/auth/login",
+                                        "/v1/auth/register",
+                                        "/api/v1/auth/register",
+                                        "/v1/auth/register-child-with-elders",
+                                        "/api/v1/auth/register-child-with-elders")
+                                .permitAll()
                         // 仅 dev profile 下会注册对应 controller；这里放行即可
                         .requestMatchers("/v1/dev/**").permitAll()
                         .requestMatchers("/v1/**").authenticated()
