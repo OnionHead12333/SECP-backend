@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import lombok.Data;
 
@@ -20,10 +22,20 @@ public class ElderProfile {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "phone", nullable = false, length = 20)
     private String phone;
 
+    @Column(name = "claimed_user_id")
     private Long claimedUserId;
+
+    @Column(name = "location_permission_foreground")
+    private Boolean locationPermissionForeground;
+
+    @Column(name = "location_permission_background")
+    private Boolean locationPermissionBackground;
+
+    @Column(name = "permission_updated_at")
+    private LocalDateTime permissionUpdatedAt;
 
     public Long getId() {
         return id;
@@ -39,6 +51,14 @@ public class ElderProfile {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public Long getClaimedUserId() {

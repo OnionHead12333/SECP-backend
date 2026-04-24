@@ -1,9 +1,10 @@
-
-# Java 编译输出
-backend/target/
 target/
 *.class
-
+*.log
+.idea/
+*.iml
+backend/target/
+**/target/
 
 # 日志文件
 *.log

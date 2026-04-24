@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ElderProfileRepository extends JpaRepository<ElderProfile, Long> {
 
     Optional<ElderProfile> findByClaimedUserId(Long claimedUserId);
+
+    Optional<ElderProfile> findByPhone(String phone);
 }
