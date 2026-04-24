@@ -1,0 +1,2 @@
+# Spring Security 密码加密依赖
+org.springframework.boot:spring-boot-starter-security
