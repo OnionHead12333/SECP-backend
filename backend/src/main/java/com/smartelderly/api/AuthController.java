@@ -11,8 +11,10 @@ import com.smartelderly.api.dto.AuthResponse;
 import com.smartelderly.api.dto.LoginRequest;
 import com.smartelderly.api.dto.RegisterRequest;
 import com.smartelderly.api.dto.RegisterChildWithEldersRequest;
+import com.smartelderly.domain.BindingStatus;
 import com.smartelderly.domain.ElderProfile;
 import com.smartelderly.domain.ElderProfileRepository;
+import com.smartelderly.domain.FamilyBindingRepository;
 import com.smartelderly.domain.User;
 import com.smartelderly.domain.UserRole;
 import com.smartelderly.security.JwtService;
@@ -39,6 +41,9 @@ public class AuthController {
 
     @Autowired
     private ElderProfileRepository elderProfileRepository;
+
+    @Autowired
+    private FamilyBindingRepository familyBindingRepository;
 
     /**
      * 用户登录接口
@@ -67,6 +72,22 @@ public class AuthController {
         }
         Instant expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
         String token = jwtService.issueToken(user.getId(), role, expiresAt);
+        boolean claimed = true;
+        int familyCount = 0;
+        if ("elder".equalsIgnoreCase(user.getRole()) && user.getPhone() != null && !user.getPhone().isBlank()) {
+            var profOpt = elderProfileRepository.findByPhone(user.getPhone().trim());
+            if (profOpt.isPresent()) {
+                var ep = profOpt.get();
+                claimed = ep.getClaimedUserId() != null;
+                familyCount = familyBindingRepository
+                        .findByElderProfileIdAndStatus(ep.getId(), BindingStatus.active)
+                        .size();
+            }
+        } else if ("child".equalsIgnoreCase(user.getRole())) {
+            familyCount = familyBindingRepository
+                    .findByChildUserIdAndStatus(user.getId(), BindingStatus.active)
+                    .size();
+        }
         AuthResponse resp = AuthResponse.builder()
                 .token(token)
                 .userId(user.getId())
@@ -75,8 +96,8 @@ public class AuthController {
                 .name(user.getName())
                 .phone(user.getPhone())
                 .nickname(user.getName())
-                .claimed(true)
-                .familyCount(0)
+                .claimed(claimed)
+                .familyCount(familyCount)
                 .build();
         return ApiResponse.success("登录成功", resp);
     }

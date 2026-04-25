@@ -16,6 +16,8 @@ import com.smartelderly.api.emergency_contact.dto.ElderEmergencyContactResponse;
 import com.smartelderly.api.emergency_contact.dto.EmergencyContactResponse;
 import com.smartelderly.api.emergency_contact.dto.UpdateEmergencyContactRequest;
 import com.smartelderly.domain.ElderProfileRepository;
+import com.smartelderly.domain.User;
+import com.smartelderly.domain.UserRepository;
 import com.smartelderly.domain.emergency_contact.EmergencyContact;
 import com.smartelderly.domain.emergency_contact.EmergencyContactRepository;
 
@@ -26,11 +28,14 @@ public class EmergencyContactService {
 
     private final EmergencyContactRepository emergencyContactRepository;
     private final ElderProfileRepository elderProfileRepository;
+    private final UserRepository userRepository;
 
     public EmergencyContactService(EmergencyContactRepository emergencyContactRepository,
-            ElderProfileRepository elderProfileRepository) {
+            ElderProfileRepository elderProfileRepository,
+            UserRepository userRepository) {
         this.emergencyContactRepository = emergencyContactRepository;
         this.elderProfileRepository = elderProfileRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -107,6 +112,24 @@ public class EmergencyContactService {
         EmergencyContactResponse response = toResponse(savedContact);
 
         return ApiResponse.ok("success", response);
+    }
+
+    /**
+     * 子女与老人刚建立家庭绑定时：若该老人下尚无此手机号，则把子女加为 priority=1 的紧急联系人，其余联系人顺延 +1（与
+     * {@link #addEmergencyContact} 规则一致）。若已存在同手机号则跳过，避免重复注册报错。
+     */
+    @Transactional
+    public void ensureChildAsPriorityOneEmergencyContact(
+            Long elderProfileId, String childName, String childPhone, String relation) {
+        if (emergencyContactRepository.existsByElderProfileIdAndPhone(elderProfileId, childPhone)) {
+            return;
+        }
+        var req = new AddEmergencyContactRequest();
+        req.setName(childName);
+        req.setPhone(childPhone);
+        req.setRelation(relation != null && !relation.isBlank() ? relation : "子女");
+        req.setPriority(1);
+        addEmergencyContact(elderProfileId, req);
     }
 
     /**
@@ -284,6 +307,22 @@ public class EmergencyContactService {
                 .collect(Collectors.toList());
 
         return ApiResponse.ok(responses);
+    }
+
+    /**
+     * 与 {@link #getElderEmergencyContacts(String)} 相同，但由登录老人 JWT 解析手机号，避免仅凭 query 误查他人数据。
+     */
+    @Transactional(readOnly = true)
+    public ApiResponse<List<ElderEmergencyContactResponse>> getElderEmergencyContactsForElderUser(long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(4010, "unauthorized"));
+        if (!"elder".equalsIgnoreCase(user.getRole())) {
+            throw new ApiException(4030, "forbidden");
+        }
+        if (user.getPhone() == null || user.getPhone().isBlank()) {
+            throw new ApiException(400, "elder account phone missing");
+        }
+        return getElderEmergencyContacts(user.getPhone().trim());
     }
 
     /**

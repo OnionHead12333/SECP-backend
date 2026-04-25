@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.smartelderly.api.ApiResponse;
 import com.smartelderly.api.emergency_contact.dto.ElderAddEmergencyContactRequest;
 import com.smartelderly.api.emergency_contact.dto.ElderEmergencyContactResponse;
+import com.smartelderly.domain.UserRole;
+import com.smartelderly.security.SecurityUtils;
 import com.smartelderly.service.emergency_contact.EmergencyContactService;
 
 @RestController
@@ -24,6 +26,15 @@ public class ElderEmergencyContactController {
 
     public ElderEmergencyContactController(EmergencyContactService emergencyContactService) {
         this.emergencyContactService = emergencyContactService;
+    }
+
+    /**
+     * 当前登录老人（JWT）在 {@code emergency_contacts} 中的列表，与 query 方式二选一；推荐本接口。
+     */
+    @GetMapping("/self")
+    public ApiResponse<List<ElderEmergencyContactResponse>> getEmergencyContactsForCurrentElder() {
+        var p = SecurityUtils.requireRole(UserRole.elder);
+        return emergencyContactService.getElderEmergencyContactsForElderUser(p.userId());
     }
 
     /**

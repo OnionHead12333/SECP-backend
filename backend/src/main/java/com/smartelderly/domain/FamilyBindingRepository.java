@@ -8,5 +8,7 @@ public interface FamilyBindingRepository extends JpaRepository<FamilyBinding, Lo
 
     List<FamilyBinding> findByChildUserIdAndStatus(Long childUserId, BindingStatus status);
 
+    List<FamilyBinding> findByElderProfileIdAndStatus(Long elderProfileId, BindingStatus status);
+
     boolean existsByChildUserIdAndElderProfileId(Long childUserId, Long elderProfileId);
 }

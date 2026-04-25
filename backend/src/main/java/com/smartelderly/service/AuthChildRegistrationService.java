@@ -9,6 +9,7 @@ import com.smartelderly.domain.FamilyBinding;
 import com.smartelderly.domain.User;
 import com.smartelderly.domain.ElderProfileRepository;
 import com.smartelderly.domain.FamilyBindingRepository;
+import com.smartelderly.service.emergency_contact.EmergencyContactService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,14 +23,17 @@ public class AuthChildRegistrationService {
     private final UserService userService;
     private final ElderProfileRepository elderProfileRepository;
     private final FamilyBindingRepository familyBindingRepository;
+    private final EmergencyContactService emergencyContactService;
 
     public AuthChildRegistrationService(
             UserService userService,
             ElderProfileRepository elderProfileRepository,
-            FamilyBindingRepository familyBindingRepository) {
+            FamilyBindingRepository familyBindingRepository,
+            EmergencyContactService emergencyContactService) {
         this.userService = userService;
         this.elderProfileRepository = elderProfileRepository;
         this.familyBindingRepository = familyBindingRepository;
+        this.emergencyContactService = emergencyContactService;
     }
 
     /**
@@ -85,6 +89,11 @@ public class AuthChildRegistrationService {
             binding.setIsPrimary(i == 0);
             binding.setStatus(BindingStatus.active);
             familyBindingRepository.save(binding);
+            emergencyContactService.ensureChildAsPriorityOneEmergencyContact(
+                    profile.getId(),
+                    displayName,
+                    childPhone,
+                    e.getRelation().trim());
         }
 
         int familyCount = familyBindingRepository
