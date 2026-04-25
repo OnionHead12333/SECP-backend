@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface FamilyBindingRepository extends JpaRepository<FamilyBinding, Long> {
 
     List<FamilyBinding> findByChildUserIdAndStatus(Long childUserId, BindingStatus status);
+
+    boolean existsByChildUserIdAndElderProfileId(Long childUserId, Long elderProfileId);
 }
