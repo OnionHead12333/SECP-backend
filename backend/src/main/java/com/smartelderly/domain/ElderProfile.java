@@ -87,4 +87,44 @@ public class ElderProfile {
     public void setClaimedUserId(Long claimedUserId) {
         this.claimedUserId = claimedUserId;
     }
+
+    public Boolean getLocationPermissionForeground() {
+        return locationPermissionForeground;
+    }
+
+    public void setLocationPermissionForeground(Boolean locationPermissionForeground) {
+        this.locationPermissionForeground = locationPermissionForeground;
+    }
+
+    public Boolean getLocationPermissionBackground() {
+        return locationPermissionBackground;
+    }
+
+    public void setLocationPermissionBackground(Boolean locationPermissionBackground) {
+        this.locationPermissionBackground = locationPermissionBackground;
+    }
+
+    public LocalDateTime getPermissionUpdatedAt() {
+        return permissionUpdatedAt;
+    }
+
+    public void setPermissionUpdatedAt(LocalDateTime permissionUpdatedAt) {
+        this.permissionUpdatedAt = permissionUpdatedAt;
+    }
+
+    public Long getCreatedByChildId() {
+        return createdByChildId;
+    }
+
+    public void setCreatedByChildId(Long createdByChildId) {
+        this.createdByChildId = createdByChildId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
