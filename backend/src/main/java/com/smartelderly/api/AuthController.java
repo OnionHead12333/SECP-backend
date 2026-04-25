@@ -11,6 +11,8 @@ import com.smartelderly.api.dto.AuthResponse;
 import com.smartelderly.api.dto.LoginRequest;
 import com.smartelderly.api.dto.RegisterRequest;
 import com.smartelderly.api.dto.RegisterChildWithEldersRequest;
+import com.smartelderly.domain.ElderProfile;
+import com.smartelderly.domain.ElderProfileRepository;
 import com.smartelderly.domain.User;
 import com.smartelderly.domain.UserRole;
 import com.smartelderly.security.JwtService;
@@ -34,6 +36,9 @@ public class AuthController {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private ElderProfileRepository elderProfileRepository;
 
     /**
      * 用户登录接口
@@ -95,8 +100,15 @@ public class AuthController {
         user.setRole(registerRequest.getRole());
         user.setName(registerRequest.getName());
         user.setPhone(registerRequest.getPhone());
-        // 密码加密存储
         User saved = userService.register(user, registerRequest.getPassword());
+
+        boolean claimed = false;
+        int familyCount = 0;
+        if ("elder".equalsIgnoreCase(saved.getRole())) {
+            ElderProfile elderProfile = ensureElderProfileForRegisteredUser(saved, registerRequest);
+            claimed = elderProfile.getClaimedUserId() != null;
+        }
+
         // 3. 构造响应
         AuthResponse resp = AuthResponse.builder()
                 .userId(saved.getId())
@@ -105,10 +117,32 @@ public class AuthController {
                 .phone(saved.getPhone())
                 .name(saved.getName())
                 .nickname(saved.getName())
-                .claimed(false)
-                .familyCount(0)
+                .claimed(claimed)
+                .familyCount(familyCount)
                 .build();
         return ApiResponse.success("注册成功", resp);
+    }
+
+    private ElderProfile ensureElderProfileForRegisteredUser(User saved, RegisterRequest registerRequest) {
+        var existing = elderProfileRepository.findByPhone(registerRequest.getPhone()).orElse(null);
+        if (existing != null) {
+            Long claimedUserId = existing.getClaimedUserId();
+            if (claimedUserId != null && !claimedUserId.equals(saved.getId())) {
+                throw new ApiException(4002, "该老人主体已被认领");
+            }
+            existing.setName(registerRequest.getName());
+            existing.setClaimedUserId(saved.getId());
+            existing.setStatus("claimed");
+            return elderProfileRepository.save(existing);
+        }
+
+        ElderProfile profile = new ElderProfile();
+        profile.setName(registerRequest.getName());
+        profile.setPhone(registerRequest.getPhone());
+        profile.setClaimedUserId(saved.getId());
+        profile.setCreatedByChildId(null);
+        profile.setStatus("claimed");
+        return elderProfileRepository.save(profile);
     }
 
     /**
