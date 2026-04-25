@@ -1,5 +1,8 @@
 package com.smartelderly.api;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,6 +12,8 @@ import com.smartelderly.api.dto.LoginRequest;
 import com.smartelderly.api.dto.RegisterRequest;
 import com.smartelderly.api.dto.RegisterChildWithEldersRequest;
 import com.smartelderly.domain.User;
+import com.smartelderly.domain.UserRole;
+import com.smartelderly.security.JwtService;
 import com.smartelderly.service.AuthChildRegistrationService;
 import com.smartelderly.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +31,9 @@ public class AuthController {
 
     @Autowired
     private AuthChildRegistrationService authChildRegistrationService;
+
+    @Autowired
+    private JwtService jwtService;
 
     /**
      * 用户登录接口
@@ -45,9 +53,17 @@ public class AuthController {
         if (!userService.checkPassword(user, loginRequest.getPassword())) {
             return ApiResponse.error(401, "用户名或密码错误");
         }
-        // 3. 构造响应
+        // 3. 签发与 JwtAuthenticationFilter 一致的标准 HS256 JWT（JWS 含两个英文句点，共三段）
+        UserRole role;
+        try {
+            role = UserRole.valueOf(user.getRole());
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(500, "用户角色数据异常");
+        }
+        Instant expiresAt = Instant.now().plus(7, ChronoUnit.DAYS);
+        String token = jwtService.issueToken(user.getId(), role, expiresAt);
         AuthResponse resp = AuthResponse.builder()
-                .token("jwt-token-demo-" + System.currentTimeMillis()) // TODO: 替换为真实 JWT
+                .token(token)
                 .userId(user.getId())
                 .role(user.getRole())
                 .username(user.getUsername())
