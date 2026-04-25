@@ -21,6 +21,11 @@ public class FamilyBinding {
 
     private Boolean isPrimary;
 
-    @Column(nullable = false)
-    private String status; // 'pending' / 'active' / 'rejected' / 'removed'
+    /**
+     * 与库表 {@code family_bindings.status}（字符串）及 {@link BindingStatus} 一致，避免与
+     * {@link FamilyBindingRepository#findByChildUserIdAndStatus(Long, BindingStatus)} 参数类型错配（Hibernate 6）。
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
+    private BindingStatus status;
 }

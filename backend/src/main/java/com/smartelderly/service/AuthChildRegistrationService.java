@@ -4,6 +4,7 @@ import com.smartelderly.api.dto.ApiResponse;
 import com.smartelderly.api.dto.AuthResponse;
 import com.smartelderly.api.dto.RegisterChildWithEldersRequest;
 import com.smartelderly.domain.ElderProfile;
+import com.smartelderly.domain.BindingStatus;
 import com.smartelderly.domain.FamilyBinding;
 import com.smartelderly.domain.User;
 import com.smartelderly.domain.ElderProfileRepository;
@@ -80,7 +81,7 @@ public class AuthChildRegistrationService {
             binding.setChildUserId(savedChild.getId());
             binding.setRelation(e.getRelation().trim());
             binding.setIsPrimary(i == 0);
-            binding.setStatus("active");
+            binding.setStatus(BindingStatus.active);
             familyBindingRepository.save(binding);
         }
 
