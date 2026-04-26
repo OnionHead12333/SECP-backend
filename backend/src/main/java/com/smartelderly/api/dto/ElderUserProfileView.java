@@ -1,6 +1,5 @@
 package com.smartelderly.api.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,14 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
-    private String token;
-    private Long userId;
-    private String username;
-    private String role;
+public class ElderUserProfileView {
     private String name;
     private String phone;
-    private String nickname;
     private String gender;
     private String birthday;
     private Boolean claimed;

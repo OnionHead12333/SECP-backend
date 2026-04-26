@@ -6,6 +6,9 @@ spring:
   jackson:
     default-property-inclusion: non_null
     time-zone: Asia/Shanghai
+    serialization:
+      # Map / ApiResponse.data 中 java.time.Instant 一律为 ISO-8601（如 ...Z），避免时间戳被客户端当毫秒误读
+      write-dates-as-timestamps: false
 
 server:
   port: ${SERVER_PORT:8080}

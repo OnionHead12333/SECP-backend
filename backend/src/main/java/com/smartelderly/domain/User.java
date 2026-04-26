@@ -1,6 +1,15 @@
 package com.smartelderly.domain;
 
-import jakarta.persistence.*;
+import java.time.LocalDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 
 @Data
@@ -24,4 +33,18 @@ public class User {
 
     @Column(unique = true)
     private String phone;
+
+    /** 与库表 users.gender ENUM 一致：male / female / unknown */
+    @Column(name = "gender", length = 16)
+    private String gender;
+
+    @Column(name = "birthday")
+    private LocalDate birthday;
+
+    @PrePersist
+    public void defaultGenderIfUnset() {
+        if (gender == null || gender.isBlank()) {
+            gender = "unknown";
+        }
+    }
 }

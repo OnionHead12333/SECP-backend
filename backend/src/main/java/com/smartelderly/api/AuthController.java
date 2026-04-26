@@ -96,6 +96,8 @@ public class AuthController {
                 .name(user.getName())
                 .phone(user.getPhone())
                 .nickname(user.getName())
+                .gender(user.getGender())
+                .birthday(user.getBirthday() != null ? user.getBirthday().toString() : null)
                 .claimed(claimed)
                 .familyCount(familyCount)
                 .build();
@@ -138,6 +140,8 @@ public class AuthController {
                 .phone(saved.getPhone())
                 .name(saved.getName())
                 .nickname(saved.getName())
+                .gender(saved.getGender())
+                .birthday(saved.getBirthday() != null ? saved.getBirthday().toString() : null)
                 .claimed(claimed)
                 .familyCount(familyCount)
                 .build();

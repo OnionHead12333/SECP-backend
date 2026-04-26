@@ -9,6 +9,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -42,6 +43,12 @@ public class ElderProfile {
 
     @Column(name = "status", length = 20)
     private String status; // unclaimed / claimed，与表 elder_profiles.status 一致
+
+    @Column(name = "gender", length = 16)
+    private String gender;
+
+    @Column(name = "birthday")
+    private LocalDate birthday;
 
     /**
      * 与库表 NOT NULL 一致：Hibernate 若插入显式 null 会绕开列默认值，需在此补默认。
