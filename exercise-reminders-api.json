@@ -1,0 +1,381 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "智慧养老平台 - 锻炼提醒接口",
+    "description": "子女端锻炼提醒相关接口的完整测试文档",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": "本地开发环境"
+    }
+  ],
+  "paths": {
+    "/v1/child/exercise-reminders": {
+      "get": {
+        "summary": "1. 列表查询 - 按老人档案查询锻炼提醒",
+        "tags": ["锻炼提醒"],
+        "parameters": [
+          {
+            "name": "elderProfileId",
+            "in": "query",
+            "description": "老人档案 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回提醒列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "elderProfileId": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "散步锻炼"
+                          },
+                          "exerciseType": {
+                            "type": "string",
+                            "example": "散步"
+                          },
+                          "startTime": {
+                            "type": "string",
+                            "example": "08:00:00"
+                          },
+                          "endTime": {
+                            "type": "string",
+                            "example": "18:00:00"
+                          },
+                          "repeatRule": {
+                            "type": "string",
+                            "example": "daily"
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "pending"
+                          },
+                          "goalValue": {
+                            "type": "integer",
+                            "example": 30
+                          },
+                          "goalUnit": {
+                            "type": "string",
+                            "example": "minutes"
+                          },
+                          "intervalMinutes": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "无权操作该老人档案"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        }
+      },
+      "post": {
+        "summary": "2. 新建锻炼提醒",
+        "tags": ["锻炼提醒"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "elderProfileId",
+                  "title",
+                  "exerciseType",
+                  "startTime",
+                  "endTime",
+                  "remindTime",
+                  "repeatRule"
+                ],
+                "properties": {
+                  "elderProfileId": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "散步锻炼"
+                  },
+                  "exerciseType": {
+                    "type": "string",
+                    "example": "散步"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "description": "HH:mm:ss 格式",
+                    "example": "08:00:00"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "description": "HH:mm:ss 格式",
+                    "example": "18:00:00"
+                  },
+                  "remindTime": {
+                    "type": "string",
+                    "description": "ISO8601 格式，如 2026-05-03T04:58:19.510Z",
+                    "example": "2026-05-10T10:00:00.000Z"
+                  },
+                  "repeatRule": {
+                    "type": "string",
+                    "enum": ["none", "daily", "weekly"],
+                    "example": "daily"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功创建提醒",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "elderProfileId": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "散步锻炼"
+                        },
+                        "exerciseType": {
+                          "type": "string",
+                          "example": "散步"
+                        },
+                        "startTime": {
+                          "type": "string",
+                          "example": "08:00:00"
+                        },
+                        "endTime": {
+                          "type": "string",
+                          "example": "18:00:00"
+                        },
+                        "repeatRule": {
+                          "type": "string",
+                          "example": "daily"
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "pending"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数错误或格式不正确"
+          },
+          "403": {
+            "description": "无权操作该老人档案"
+          }
+        }
+      }
+    },
+    "/v1/child/exercise-reminders/{id}": {
+      "put": {
+        "summary": "3. 修改锻炼提醒",
+        "tags": ["锻炼提醒"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "提醒 ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "exerciseType",
+                  "repeatRule",
+                  "startTime",
+                  "endTime"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "散步锻炼（已修改）"
+                  },
+                  "exerciseType": {
+                    "type": "string",
+                    "example": "散步"
+                  },
+                  "repeatRule": {
+                    "type": "string",
+                    "enum": ["none", "daily", "weekly"],
+                    "example": "daily"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "description": "HH:mm:ss 格式",
+                    "example": "07:00:00"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "description": "HH:mm:ss 格式",
+                    "example": "19:00:00"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功修改提醒",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "提醒不存在"
+          },
+          "403": {
+            "description": "无权操作该老人档案"
+          }
+        }
+      },
+      "delete": {
+        "summary": "4. 删除锻炼提醒",
+        "tags": ["锻炼提醒"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "提醒 ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "成功删除提醒"
+          },
+          "404": {
+            "description": "提醒不存在"
+          },
+          "403": {
+            "description": "无权操作该老人档案"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "请输入子女账号的 JWT Token"
+      }
+    }
+  }
+}

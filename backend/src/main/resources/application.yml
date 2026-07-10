@@ -1,0 +1,131 @@
+spring:
+  application:
+    name: smart-elderly-care-platform
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: Asia/Shanghai
+    serialization:
+      # Map / ApiResponse.data 中 java.time.Instant 一律为 ISO-8601（如 ...Z），避免时间戳被客户端当毫秒误读
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+server:
+  port: ${SERVER_PORT:8080}
+  address: 0.0.0.0
+  servlet:
+    context-path: /api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# 自定义：与 @ConfigurationProperties(prefix = "app") 绑定
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+  # 与签发登录 JWT 的一方保持一致（HS256，密钥长度建议 ≥ 32 字符）
+  jwt:
+    secret: ${APP_JWT_SECRET:dev-sos-jwt-secret-key-at-least-32-chars!!}
+  # 百度云 OCR：https://cloud.baidu.com/product/ocr —— 仅服务端持有 Secret
+  # 环境变量仍可用；本地 IDEA 可将密钥写在 application-local.yml（勿提交），见 application-local.yml.example
+  baidu:
+    ocr:
+      api-key: ${BAIDU_OCR_API_KEY:1nbTdCtcDy5wStBH5Yl4IWHL}
+      secret-key: ${BAIDU_OCR_SECRET_KEY:w2UlHkGptXF6UnNT60120m9KvMWfXc9m}
+  medical:
+    # 医疗单据图片本地存储根目录（上线请改为对象存储或挂载盘）
+    storage-dir: ${APP_MEDICAL_STORAGE:${user.home}/.smart-elderly/medical-uploads}
+  profile:
+    # 用户头像本地存储根目录
+    storage-dir: ${APP_PROFILE_STORAGE:${user.home}/.smart-elderly/profile-avatars}
+  community:
+    # 兴趣社群语音/图片本地存储根目录
+    storage-dir: ${APP_COMMUNITY_STORAGE:${user.home}/.smart-elderly/community-uploads}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  # 本地 MySQL：库名 elder（与 Navicat 一致）
+  datasource:
+    url: jdbc:mysql://localhost:3306/elder?useUnicode=true&characterEncoding=utf8&connectionTimeZone=Asia/Shanghai&serverTimezone=Asia/Shanghai
+    username: root
+    password: "123456"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Shanghai
+
+logging:
+  level:
+    root: INFO
+    com.smartelderly: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  # 生产库：通过环境变量注入（ECS app.env 或 systemd Environment）
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Shanghai
+
+server:
+  forward-headers-strategy: framework
+  shutdown: graceful
+  
+
+logging:
+  level:
+    root: WARN
+    com.smartelderly: INFO
+
+app:
+  cors:
+    allowed-origins:
+      - https://your-frontend.example.com
+
+# 生产环境关闭 Swagger，避免接口文档对外暴露
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

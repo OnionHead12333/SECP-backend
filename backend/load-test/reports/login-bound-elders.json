@@ -1,0 +1,195 @@
+{
+    "setup_data": {
+        "childPhone": "13840434741",
+        "password": "Test123456"
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "checks": {
+                    "setup child registration status is 200": {
+                        "fails": 0,
+                        "name": "setup child registration status is 200",
+                        "path": "::setup::setup child registration status is 200",
+                        "id": "c112b26494ed9e466f2d4de5125dbca4",
+                        "passes": 1
+                    },
+                    "setup child registration code is 0": {
+                        "path": "::setup::setup child registration code is 0",
+                        "id": "4b6787e52601da00ee976335a86a2b86",
+                        "passes": 1,
+                        "fails": 0,
+                        "name": "setup child registration code is 0"
+                    }
+                },
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {}
+            }
+        },
+        "checks": {
+            "login status is 200": {
+                "id": "baba87e761865dc93085ee0c1fe25f4c",
+                "passes": 7920,
+                "fails": 0,
+                "name": "login status is 200",
+                "path": "::login status is 200"
+            },
+            "login code is 0": {
+                "name": "login code is 0",
+                "path": "::login code is 0",
+                "id": "b5e33317817ee7bb2978bf86de5bc183",
+                "passes": 7920,
+                "fails": 0
+            },
+            "login returns token": {
+                "name": "login returns token",
+                "path": "::login returns token",
+                "id": "78c4c109214e8b5bb2cd4dc9ec3b7320",
+                "passes": 7920,
+                "fails": 0
+            },
+            "bound elders status is 200": {
+                "name": "bound elders status is 200",
+                "path": "::bound elders status is 200",
+                "id": "4381e32db6df5b1953816c41b83609a7",
+                "passes": 7920,
+                "fails": 0
+            },
+            "bound elders code is 0": {
+                "passes": 7920,
+                "fails": 0,
+                "name": "bound elders code is 0",
+                "path": "::bound elders code is 0",
+                "id": "10c2b2f264e478dcb6f3ea6125c65f2a"
+            },
+            "bound elders has data": {
+                "name": "bound elders has data",
+                "path": "::bound elders has data",
+                "id": "e5f13e1d0ea9b7171d0c14640868dbec",
+                "passes": 7920,
+                "fails": 0
+            }
+        }
+    },
+    "metrics": {
+        "http_reqs": {
+            "rate": 52.60470043936033,
+            "count": 15841
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_req_connecting": {
+            "max": 81.7144,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.03288289249416073,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_sending": {
+            "p(95)": 0,
+            "avg": 0.049308389621867225,
+            "min": 0,
+            "med": 0,
+            "max": 97.5305,
+            "p(90)": 0
+        },
+        "checks": {
+            "passes": 47522,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_waiting": {
+            "avg": 64.68124268038592,
+            "min": 1.3112,
+            "med": 71.0996,
+            "max": 514.4367,
+            "p(90)": 162.1192,
+            "p(95)": 233.0286
+        },
+        "http_req_receiving": {
+            "avg": 0.4246729562527605,
+            "min": 0,
+            "med": 0.1224,
+            "max": 64.7757,
+            "p(90)": 0.9209,
+            "p(95)": 1.0006
+        },
+        "data_sent": {
+            "rate": 12835.938760915924,
+            "count": 3865322
+        },
+        "vus_max": {
+            "max": 30,
+            "value": 30,
+            "min": 30
+        },
+        "http_req_duration": {
+            "avg": 65.15522402626036,
+            "min": 1.3424,
+            "med": 71.4727,
+            "max": 514.4367,
+            "p(90)": 162.3687,
+            "p(95)": 234.167,
+            "thresholds": {
+                "p(95)<800": false
+            }
+        },
+        "iterations": {
+            "count": 7920,
+            "rate": 26.300689822595405
+        },
+        "data_received": {
+            "count": 10291524,
+            "rate": 34176.032894671254
+        },
+        "http_req_duration{expected_response:true}": {
+            "max": 514.4367,
+            "p(90)": 162.3687,
+            "p(95)": 234.167,
+            "avg": 65.15522402626036,
+            "min": 1.3424,
+            "med": 71.4727
+        },
+        "iteration_duration": {
+            "p(95)": 1310.8236,
+            "avg": 1138.0990223358567,
+            "min": 1072.9804,
+            "med": 1099.8645499999998,
+            "max": 1777.5825,
+            "p(90)": 1259.00027
+        },
+        "vus": {
+            "min": 5,
+            "max": 30,
+            "value": 5
+        },
+        "http_req_blocked": {
+            "min": 0,
+            "med": 0,
+            "max": 161.9973,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.05668628874439743
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 15841,
+            "thresholds": {
+                "rate<0.02": false
+            },
+            "value": 0
+        }
+    }
+}

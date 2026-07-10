@@ -1,0 +1,5 @@
+﻿{
+  "datasetPath": "data/medical_qa_dataset.csv",
+  "modelOutputDir": "data/ai-models",
+  "algorithm": "tfidf_lr"
+}

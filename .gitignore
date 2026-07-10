@@ -1,0 +1,34 @@
+target/
+*.class
+*.log
+.idea/
+*.iml
+backend/target/
+**/target/
+
+# 日志文件
+*.log
+
+# IDE 配置文件
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# 敏感配置文件
+config/application-local.properties
+backend/src/main/resources/application-local.yml
+.env
+
+# Build outputs
+output/
+
+# Large local data artifacts
+backend/data/medical_qa_dataset.csv
+backend/data/ai-index/ai_medical_qa_index.txt

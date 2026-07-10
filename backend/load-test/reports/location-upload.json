@@ -1,0 +1,208 @@
+{
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "setup elder registration status is 200": {
+                            "name": "setup elder registration status is 200",
+                            "path": "::setup::setup elder registration status is 200",
+                            "id": "665474938fd5cb3ab722e10d5f3f7d44",
+                            "passes": 1,
+                            "fails": 0
+                        },
+                        "setup elder registration code is 0": {
+                            "name": "setup elder registration code is 0",
+                            "path": "::setup::setup elder registration code is 0",
+                            "id": "fba91d2fa07303ab028f7ac5d8a92e0d",
+                            "passes": 1,
+                            "fails": 0
+                        },
+                        "setup elder login status is 200": {
+                            "id": "2016e4d2ae9ababa9f42a6fb34f98fa0",
+                            "passes": 1,
+                            "fails": 0,
+                            "name": "setup elder login status is 200",
+                            "path": "::setup::setup elder login status is 200"
+                        },
+                        "setup elder login returns token": {
+                            "id": "5ddc2e79c77f41337476338d92547d4d",
+                            "passes": 1,
+                            "fails": 0,
+                            "name": "setup elder login returns token",
+                            "path": "::setup::setup elder login returns token"
+                        },
+                        "setup location warmup status is 200": {
+                            "name": "setup location warmup status is 200",
+                            "path": "::setup::setup location warmup status is 200",
+                            "id": "17ee3072fd8442b9cd8166856aed5ead",
+                            "passes": 1,
+                            "fails": 0
+                        },
+                        "setup location warmup code is 0": {
+                            "fails": 0,
+                            "name": "setup location warmup code is 0",
+                            "path": "::setup::setup location warmup code is 0",
+                            "id": "2f3d0acbfd6e243f636d31c7a421367a",
+                            "passes": 1
+                        },
+                        "setup location warmup returns id": {
+                            "fails": 0,
+                            "name": "setup location warmup returns id",
+                            "path": "::setup::setup location warmup returns id",
+                            "id": "017277647884c278480dca96cbd8300b",
+                            "passes": 1
+                        }
+                    }
+            }
+        },
+        "checks": {
+            "location upload status is 200": {
+                "path": "::location upload status is 200",
+                "id": "d3c9df5deef83af91dd4c06e5d18f27d",
+                "passes": 8880,
+                "fails": 0,
+                "name": "location upload status is 200"
+            },
+            "location upload code is 0": {
+                "name": "location upload code is 0",
+                "path": "::location upload code is 0",
+                "id": "e2aaffc3d49cf3972ef4e15f1a69cab0",
+                "passes": 8880,
+                "fails": 0
+            },
+            "location upload returns id": {
+                "name": "location upload returns id",
+                "path": "::location upload returns id",
+                "id": "c947dae9e021e4db32f7d652dc11c09d",
+                "passes": 8880,
+                "fails": 0
+            }
+        },
+        "name": ""
+    },
+    "metrics": {
+        "http_req_sending": {
+            "avg": 0.09241632331419566,
+            "min": 0,
+            "med": 0,
+            "max": 21.6673,
+            "p(90)": 0,
+            "p(95)": 0.51488
+        },
+        "http_req_receiving": {
+            "max": 46.9135,
+            "p(90)": 0.9994,
+            "p(95)": 1.2378,
+            "avg": 0.4278145108634467,
+            "min": 0,
+            "med": 0
+        },
+        "data_received": {
+            "count": 3935687,
+            "rate": 13055.754091853774
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "data_sent": {
+            "count": 4121685,
+            "rate": 13672.760512734454
+        },
+        "vus": {
+            "value": 30,
+            "min": 30,
+            "max": 30
+        },
+        "vus_max": {
+            "max": 30,
+            "value": 30,
+            "min": 30
+        },
+        "http_req_duration": {
+            "max": 501.0047,
+            "p(90)": 19.56722,
+            "p(95)": 24.029749999999996,
+            "avg": 13.505003320950168,
+            "min": 4.026,
+            "med": 11.4712,
+            "thresholds": {
+                "p(95)<800": false
+            }
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 14.6151,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.020441855229089277,
+            "min": 0
+        },
+        "http_req_waiting": {
+            "avg": 12.984772486772501,
+            "min": 3.7131,
+            "med": 11.0029,
+            "max": 499.1148,
+            "p(90)": 18.6499,
+            "p(95)": 23.1331
+        },
+        "checks": {
+            "passes": 26647,
+            "fails": 0,
+            "value": 1
+        },
+        "iterations": {
+            "count": 8880,
+            "rate": 29.457397485029045
+        },
+        "http_reqs": {
+            "count": 8883,
+            "rate": 29.467349308503717
+        },
+        "http_req_blocked": {
+            "min": 0,
+            "med": 0,
+            "max": 39.995,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.04802790723854555
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 13.505003320950168,
+            "min": 4.026,
+            "med": 11.4712,
+            "max": 501.0047,
+            "p(90)": 19.56722,
+            "p(95)": 24.029749999999996
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 8883,
+            "thresholds": {
+                "rate<0.02": false
+            },
+            "value": 0
+        },
+        "iteration_duration": {
+            "avg": 1015.3268015540569,
+            "min": 1004.5859,
+            "med": 1013.0724,
+            "max": 1204.8074,
+            "p(90)": 1023.0873200000001,
+            "p(95)": 1028.86548
+        }
+    },
+    "setup_data": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxOSIsImlhdCI6MTc4MDc0ODk3MiwiZXhwIjoxNzgxMzUzNzcyLCJyb2xlIjoiZWxkZXIifQ.HzpTyukPeRUQJKH3cMSLgHrvx2WcV8sMWTHYEaAZwrw"
+    }
+}
