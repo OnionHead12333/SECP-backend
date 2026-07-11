@@ -48,6 +48,18 @@ public class SecurityConfig {
                                 "/v1/health",
                                 "/api/v1/health")
                                 .permitAll()
+                        .requestMatchers(
+                                "/v1/inspection/**",
+                                "/api/v1/inspection/**",
+                                "/v1/fall/events",
+                                "/api/v1/fall/events",
+                                "/v1/child/alerts",
+                                "/api/v1/child/alerts",
+                                "/v1/navigation/**",
+                                "/api/v1/navigation/**",
+                                "/v1/obstacle/**",
+                                "/api/v1/obstacle/**")
+                                .permitAll()
                         // Prometheus 拉取指标、健康检查（路径不含 context-path）
                         .requestMatchers(
                                 "/actuator/health",
@@ -85,6 +97,15 @@ public class SecurityConfig {
     }
 
     private static CorsConfigurationSource corsConfigurationSource(AppProperties appProperties) {
+        CorsConfiguration mockConfiguration = new CorsConfiguration();
+        mockConfiguration.setAllowedOrigins(List.of(
+                "http://localhost:54321",
+                "http://127.0.0.1:54321"));
+        mockConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        mockConfiguration.setAllowedHeaders(List.of("*"));
+        mockConfiguration.setAllowCredentials(true);
+        mockConfiguration.setMaxAge(3600L);
+
         CorsConfiguration configuration = new CorsConfiguration();
         List<String> origins = appProperties.getCors().getAllowedOrigins();
         configuration.setAllowedOrigins(origins == null || origins.isEmpty() ? List.of() : origins);
@@ -93,6 +114,11 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/v1/inspection/**", mockConfiguration);
+        source.registerCorsConfiguration("/v1/fall/**", mockConfiguration);
+        source.registerCorsConfiguration("/v1/child/alerts", mockConfiguration);
+        source.registerCorsConfiguration("/v1/navigation/**", mockConfiguration);
+        source.registerCorsConfiguration("/v1/obstacle/**", mockConfiguration);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
