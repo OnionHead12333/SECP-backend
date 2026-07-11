@@ -54,6 +54,10 @@ public class SecurityConfig {
                                 "/api/inspection/**",
                                 "/child/fall-alerts/**",
                                 "/api/child/fall-alerts/**",
+                                "/entertainment/**",
+                                "/api/entertainment/**",
+                                "/voice/**",
+                                "/api/voice/**",
                                 "/navigation/**",
                                 "/api/navigation/**")
                                 .permitAll()
