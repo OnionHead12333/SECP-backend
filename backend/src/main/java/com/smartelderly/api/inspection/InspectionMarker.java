@@ -7,8 +7,10 @@ public class InspectionMarker {
 
     private Long id;
     private Long mapId;
+    private Long elderId;
     private String type;
     private String title;
+    private String message;
     private String description;
     private Double x;
     private Double y;
@@ -45,6 +47,14 @@ public class InspectionMarker {
         this.mapId = mapId;
     }
 
+    public Long getElderId() {
+        return elderId;
+    }
+
+    public void setElderId(Long elderId) {
+        this.elderId = elderId;
+    }
+
     public String getType() {
         return type;
     }
@@ -59,6 +69,14 @@ public class InspectionMarker {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getMessage() {
+        return message == null ? description : message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getDescription() {
