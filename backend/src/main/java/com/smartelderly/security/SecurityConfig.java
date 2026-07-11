@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 "/v1/health",
                                 "/api/v1/health")
                                 .permitAll()
+                        .requestMatchers("/inspection/**", "/api/inspection/**").permitAll()
                         // Prometheus 拉取指标、健康检查（路径不含 context-path）
                         .requestMatchers(
                                 "/actuator/health",
