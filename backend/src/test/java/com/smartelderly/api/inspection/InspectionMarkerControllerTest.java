@@ -198,6 +198,7 @@ class InspectionMarkerControllerTest {
         request.put("y", 180);
         request.put("level", "warning");
         request.put("status", "unhandled");
+        request.put("elderProfileId", 42);
         request.put("locationName", "一层大厅入口");
         request.put("source", "crack_detect");
         request.put("imageUrl", "/static/mock/crack_001.jpg");
@@ -226,6 +227,7 @@ class InspectionMarkerControllerTest {
         verify(repository).save(captor.capture());
         RobotMapMarker saved = captor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals(1L, saved.getMapId());
+        org.junit.jupiter.api.Assertions.assertEquals(42L, saved.getElderProfileId());
         org.junit.jupiter.api.Assertions.assertEquals("crack", saved.getMarkerType());
         org.junit.jupiter.api.Assertions.assertEquals(360.0, saved.getLocationX());
         org.junit.jupiter.api.Assertions.assertEquals("一层大厅入口", saved.getLocationName());

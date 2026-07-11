@@ -55,6 +55,14 @@ public class InspectionMarker {
         this.elderId = elderId;
     }
 
+    public Long getElderProfileId() {
+        return elderId;
+    }
+
+    public void setElderProfileId(Long elderProfileId) {
+        this.elderId = elderProfileId;
+    }
+
     public String getType() {
         return type;
     }
