@@ -4,6 +4,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Optional;
+
+import com.smartelderly.api.inspection.RobotMapMarkerRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -12,7 +15,12 @@ class NavigationStatusControllerTest {
 
     @Test
     void navigationStatus_shouldReturnFrontendMockStatus() throws Exception {
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new NavigationStatusController()).build();
+        RobotNavigationTaskRepository taskRepository = org.mockito.Mockito.mock(RobotNavigationTaskRepository.class);
+        RobotStatusRepository statusRepository = org.mockito.Mockito.mock(RobotStatusRepository.class);
+        RobotMapMarkerRepository markerRepository = org.mockito.Mockito.mock(RobotMapMarkerRepository.class);
+        org.mockito.Mockito.when(statusRepository.findFirstByOrderByUpdatedAtDesc()).thenReturn(Optional.empty());
+        NavigationTaskService service = new NavigationTaskService(taskRepository, statusRepository, markerRepository);
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new NavigationTaskController(service)).build();
 
         mockMvc.perform(get("/api/navigation/status").contextPath("/api"))
                 .andExpect(status().isOk())

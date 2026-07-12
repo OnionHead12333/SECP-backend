@@ -11,6 +11,20 @@ public interface RobotMapMarkerRepository extends JpaRepository<RobotMapMarker, 
 
     List<RobotMapMarker> findAllByOrderByIdAsc();
 
+    Optional<RobotMapMarker> findFirstByMapIdAndRobotIdAndMarkerTypeAndStatusOrderByIdDesc(
+            Long mapId,
+            Long robotId,
+            String markerType,
+            String status);
+
+    default Optional<RobotMapMarker> findActiveTargetMarker(Long mapId, Long robotId) {
+        return findFirstByMapIdAndRobotIdAndMarkerTypeAndStatusOrderByIdDesc(
+                mapId,
+                robotId,
+                "target",
+                "active");
+    }
+
     @Query(value = """
             select m.*
             from robot_map_marker m

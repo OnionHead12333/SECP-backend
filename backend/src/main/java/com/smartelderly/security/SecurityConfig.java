@@ -58,6 +58,8 @@ public class SecurityConfig {
                                 "/api/entertainment/**",
                                 "/voice/**",
                                 "/api/voice/**",
+                                "/robot/control/**",
+                                "/api/robot/control/**",
                                 "/navigation/**",
                                 "/api/navigation/**")
                                 .permitAll()
