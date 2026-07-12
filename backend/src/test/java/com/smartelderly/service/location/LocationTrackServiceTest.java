@@ -20,6 +20,7 @@ import com.smartelderly.domain.location.LocationLog;
 import com.smartelderly.domain.location.LocationLogRepository;
 import com.smartelderly.domain.location.LocationSource;
 import com.smartelderly.domain.location.LocationType;
+import com.smartelderly.util.TimeUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("定位轨迹服务单元测试")
@@ -30,6 +31,9 @@ class LocationTrackServiceTest {
 
     @Mock
     private ElderLocationGuardService elderLocationGuardService;
+
+    @Mock
+    private ElderPresenceService elderPresenceService;
 
     @InjectMocks
     private LocationTrackService locationTrackService;
@@ -60,6 +64,7 @@ class LocationTrackServiceTest {
         assertEquals(LocationSource.gps, saved.getSource());
         assertEquals(LocalDateTime.of(2026, 6, 6, 18, 0), saved.getRecordedAt());
         verify(elderLocationGuardService).markUploadSuccess(7L, saved.getRecordedAt());
+        verify(elderPresenceService).checkAfterLocationUpload(7L, saved);
     }
 
     @Test
@@ -79,6 +84,7 @@ class LocationTrackServiceTest {
         assertEquals(LocationType.outdoor, saved.getLocationType());
         assertEquals(LocationSource.gaode, saved.getSource());
         assertEquals(LocalDateTime.of(2026, 6, 6, 18, 30), saved.getRecordedAt());
+        verify(elderPresenceService).checkAfterLocationUpload(9L, saved);
     }
 
     @Test
@@ -90,9 +96,9 @@ class LocationTrackServiceTest {
 
         when(locationLogRepository.save(any(LocationLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        LocalDateTime before = LocalDateTime.now().minusSeconds(1);
+        LocalDateTime before = TimeUtils.now();
         LocationLog saved = locationTrackService.saveLocation(11L, dto);
-        LocalDateTime after = LocalDateTime.now().plusSeconds(1);
+        LocalDateTime after = TimeUtils.now();
 
         assertEquals(LocationType.outdoor, saved.getLocationType());
         assertEquals(LocationSource.gaode, saved.getSource());
@@ -103,5 +109,6 @@ class LocationTrackServiceTest {
         ArgumentCaptor<LocationLog> captor = ArgumentCaptor.forClass(LocationLog.class);
         verify(locationLogRepository).save(captor.capture());
         assertEquals(11L, captor.getValue().getElderProfileId());
+        verify(elderPresenceService).checkAfterLocationUpload(11L, saved);
     }
 }

@@ -36,6 +36,7 @@ import com.smartelderly.domain.EmergencyAlertRepository;
 import com.smartelderly.domain.FamilyBinding;
 import com.smartelderly.domain.FamilyBindingRepository;
 import com.smartelderly.domain.TriggerMode;
+import com.smartelderly.util.TimeUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("紧急告警服务单元测试")
@@ -90,7 +91,7 @@ class EmergencyAlertServiceTest {
     void createForElder_existingPendingAlert_returnsExistingAlert() {
         ElderProfile elder = elder(7L, 100L, "张三");
         EmergencyAlert existing = alert(55L, 7L, AlertStatus.pending_revoke);
-        existing.setRevokeDeadline(LocalDateTime.now().plusSeconds(30));
+        existing.setRevokeDeadline(TimeUtils.now().plusSeconds(30));
 
         when(elderProfileRepository.findByClaimedUserId(100L)).thenReturn(Optional.of(elder));
         when(alertRepository.findFirstByElderProfileIdAndStatusOrderByIdDesc(7L, AlertStatus.pending_revoke))
@@ -110,7 +111,8 @@ class EmergencyAlertServiceTest {
     void revokeForElder_pendingAlert_cancelsAlert() {
         ElderProfile elder = elder(7L, 100L, "张三");
         EmergencyAlert alert = alert(55L, 7L, AlertStatus.pending_revoke);
-        alert.setRevokeDeadline(LocalDateTime.now().plusSeconds(30));
+        LocalDateTime now = TimeUtils.now();
+        alert.setRevokeDeadline(now.plusSeconds(30));
 
         when(elderProfileRepository.findByClaimedUserId(100L)).thenReturn(Optional.of(elder));
         when(alertRepository.findByIdAndElderProfileId(55L, 7L)).thenReturn(Optional.of(alert));
@@ -132,7 +134,8 @@ class EmergencyAlertServiceTest {
     void sendNowForElder_pendingAlert_sendsAlert() {
         ElderProfile elder = elder(7L, 100L, "张三");
         EmergencyAlert alert = alert(55L, 7L, AlertStatus.pending_revoke);
-        alert.setRevokeDeadline(LocalDateTime.now().plusSeconds(30));
+        LocalDateTime now = TimeUtils.now();
+        alert.setRevokeDeadline(now.plusSeconds(30));
 
         when(elderProfileRepository.findByClaimedUserId(100L)).thenReturn(Optional.of(elder));
         when(alertRepository.findByIdAndElderProfileId(55L, 7L)).thenReturn(Optional.of(alert));
@@ -150,7 +153,7 @@ class EmergencyAlertServiceTest {
     void getForElder_expiredPendingAlert_autoSendsBeforeReturn() {
         ElderProfile elder = elder(7L, 100L, "张三");
         EmergencyAlert alert = alert(55L, 7L, AlertStatus.pending_revoke);
-        alert.setRevokeDeadline(LocalDateTime.now().minusSeconds(1));
+        alert.setRevokeDeadline(TimeUtils.now().minusSeconds(1));
 
         when(elderProfileRepository.findByClaimedUserId(100L)).thenReturn(Optional.of(elder));
         when(alertRepository.findByIdAndElderProfileId(55L, 7L)).thenReturn(Optional.of(alert));
@@ -192,7 +195,7 @@ class EmergencyAlertServiceTest {
     @DisplayName("子女查询告警列表：应返回绑定老人 sent/handled 告警")
     void listForChild_boundElders_returnsPagedAlerts() {
         EmergencyAlert sent = alert(55L, 7L, AlertStatus.sent);
-        sent.setSentTime(LocalDateTime.now());
+        sent.setSentTime(TimeUtils.now());
 
         when(familyBindingRepository.findByChildUserIdAndStatus(200L, BindingStatus.active))
                 .thenReturn(List.of(binding(7L, 200L)));
@@ -264,7 +267,7 @@ class EmergencyAlertServiceTest {
         alert.setAlertType(AlertType.sos);
         alert.setTriggerMode(TriggerMode.button);
         alert.setStatus(status);
-        alert.setTriggerTime(LocalDateTime.now().minusSeconds(5));
+        alert.setTriggerTime(TimeUtils.now().minusSeconds(5));
         return alert;
     }
 
