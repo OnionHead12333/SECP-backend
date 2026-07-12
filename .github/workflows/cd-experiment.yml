@@ -1,0 +1,157 @@
+name: Backend CD Experiment
+
+on:
+  push:
+    tags:
+      - "backend-deploy-*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ecs-deploy
+  cancel-in-progress: false
+
+jobs:
+  test-package-deploy:
+    name: Test, Package and Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      JAR_PATH: backend/target/smart-elderly-care-backend-0.0.1-SNAPSHOT.jar
+      REMOTE_JAR: /opt/secp/incoming/backend-${{ github.sha }}.jar
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify deployment commit source
+        run: |
+          git fetch --no-tags origin ci-cd-experiment
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/ci-cd-experiment
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Prepare Maven wrapper
+        working-directory: backend
+        run: chmod +x mvnw
+
+      - name: Run unit tests
+        working-directory: backend
+        run: ./mvnw -B -ntp test
+
+      - name: Package application
+        working-directory: backend
+        run: ./mvnw -B -ntp -DskipTests package
+
+      - name: Validate application JAR
+        run: |
+          test -s "$JAR_PATH"
+          jar tf "$JAR_PATH" >/dev/null
+          printf 'JAR_SHA256=%s\n' "$(sha256sum "$JAR_PATH" | cut -d ' ' -f 1)" >> "$GITHUB_ENV"
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          test -n "$DEPLOY_SSH_KEY"
+          test -n "$DEPLOY_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Verify server deployment script
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          LOCAL_SCRIPT_SHA256="$(sha256sum deploy/deploy-secp-backend.sh | cut -d ' ' -f 1)"
+          REMOTE_SCRIPT_SHA256="$(
+            ssh \
+              -p "$DEPLOY_PORT" \
+              -i "$HOME/.ssh/deploy_key" \
+              -o BatchMode=yes \
+              -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              "${DEPLOY_USER}@${DEPLOY_HOST}" \
+              "sha256sum /usr/local/sbin/deploy-secp-backend" \
+              | cut -d ' ' -f 1
+          )"
+          test "$REMOTE_SCRIPT_SHA256" = "$LOCAL_SCRIPT_SHA256"
+
+      - name: Upload application JAR
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          scp \
+            -P "$DEPLOY_PORT" \
+            -i "$HOME/.ssh/deploy_key" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$JAR_PATH" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${REMOTE_JAR}"
+
+      - name: Deploy application
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          REMOTE_SHA256="$(
+            ssh \
+              -p "$DEPLOY_PORT" \
+              -i "$HOME/.ssh/deploy_key" \
+              -o BatchMode=yes \
+              -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              "${DEPLOY_USER}@${DEPLOY_HOST}" \
+              "sha256sum '${REMOTE_JAR}'" \
+              | cut -d ' ' -f 1
+          )"
+          test "$REMOTE_SHA256" = "$JAR_SHA256"
+
+          ssh \
+            -p "$DEPLOY_PORT" \
+            -i "$HOME/.ssh/deploy_key" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "sudo -n /usr/local/sbin/deploy-secp-backend '${REMOTE_JAR}' '${GITHUB_SHA}' '${JAR_SHA256}'"
+
+      - name: Verify deployed service
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          ssh \
+            -p "$DEPLOY_PORT" \
+            -i "$HOME/.ssh/deploy_key" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "systemctl is-active --quiet secp-backend.service && curl -fsS --max-time 10 http://127.0.0.1:8080/api/actuator/health | grep -Eq '\"status\"[[:space:]]*:[[:space:]]*\"UP\"'"
