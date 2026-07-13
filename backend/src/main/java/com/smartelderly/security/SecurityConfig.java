@@ -51,18 +51,12 @@ public class SecurityConfig {
                                 .permitAll()
                         .requestMatchers(
                                 "/inspection/**",
-                                "/api/inspection/**",
                                 "/child/fall-alerts/**",
-                                "/api/child/fall-alerts/**",
                                 "/entertainment/**",
-                                "/api/entertainment/**",
                                 "/voice/**",
-                                "/api/voice/**",
                                 "/robot/control/**",
-                                "/api/robot/control/**",
-                                "/navigation/**",
-                                "/api/navigation/**")
-                                .permitAll()
+                                "/navigation/**")
+                                .authenticated()
                         // Prometheus 拉取指标、健康检查（路径不含 context-path）
                         .requestMatchers(
                                 "/actuator/health",

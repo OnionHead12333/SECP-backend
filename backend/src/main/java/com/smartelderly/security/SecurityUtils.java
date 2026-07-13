@@ -46,4 +46,16 @@ public final class SecurityUtils {
         }
         return p;
     }
+
+    public static AuthPrincipal requireMatchingUserId(Long requestedUserId) {
+        AuthPrincipal principal = requireAuth();
+        requireMatchingUserId(principal, requestedUserId);
+        return principal;
+    }
+
+    public static void requireMatchingUserId(AuthPrincipal principal, Long requestedUserId) {
+        if (requestedUserId != null && requestedUserId.longValue() != principal.userId()) {
+            throw new ApiException(4030, "forbidden");
+        }
+    }
 }

@@ -53,16 +53,21 @@ public class InspectionMarkerService {
     }
 
     @Transactional
-    public InspectionMarker createMarker(InspectionMarker request) {
+    public InspectionMarker createMarker(InspectionMarker request, long createdByUserId) {
         RobotMapMarker marker = toEntity(request);
+        marker.setCreatedBy(createdByUserId);
         return toResponse(markerRepository.save(marker));
     }
 
     @Transactional
-    public Optional<InspectionMarker> handleMarker(long id, InspectionHandleRequest request) {
+    public Optional<InspectionMarker> handleMarker(
+            long id,
+            InspectionHandleRequest request,
+            long handledByUserId) {
         return markerRepository.findById(id)
                 .map(marker -> {
                     marker.setStatus("handled");
+                    marker.setHandledBy(handledByUserId);
                     marker.setHandledByName(request.handler());
                     marker.setHandleRemark(request.remark());
                     marker.setHandledAt(LocalDateTime.now());

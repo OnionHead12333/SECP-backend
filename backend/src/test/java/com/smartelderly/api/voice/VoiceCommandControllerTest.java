@@ -19,10 +19,16 @@ import com.smartelderly.api.entertainment.RobotCommandLogRepository;
 import com.smartelderly.api.entertainment.RobotEntertainmentTask;
 import com.smartelderly.api.entertainment.RobotEntertainmentTaskRepository;
 import com.smartelderly.api.entertainment.RobotMusicLibraryRepository;
+import com.smartelderly.domain.UserRole;
+import com.smartelderly.security.AuthPrincipal;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -35,6 +41,7 @@ class VoiceCommandControllerTest {
 
     @BeforeEach
     void setUp() {
+        authenticate(9001L);
         objectMapper = new ObjectMapper();
         RobotMusicLibraryRepository musicRepository = org.mockito.Mockito.mock(RobotMusicLibraryRepository.class);
         taskRepository = org.mockito.Mockito.mock(RobotEntertainmentTaskRepository.class);
@@ -46,6 +53,11 @@ class VoiceCommandControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new VoiceCommandController(voiceCommandService)).build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void command_shouldSupportPlayMusicAndCreateEntertainmentTask() throws Exception {
         when(taskRepository.save(any(RobotEntertainmentTask.class))).thenAnswer(invocation -> {
@@ -55,7 +67,7 @@ class VoiceCommandControllerTest {
         });
         when(commandLogRepository.save(any(RobotCommandLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        mockMvc.perform(post("/api/voice/command")
+        mockMvc.perform(post("/api/voice/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(playMusicRequest())))
@@ -89,7 +101,7 @@ class VoiceCommandControllerTest {
         Map<String, Object> request = playMusicRequest();
         request.put("command", "dance");
         request.put("danceMode", "gentle");
-        mockMvc.perform(post("/api/voice/command")
+        mockMvc.perform(post("/api/voice/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(request)))
@@ -113,7 +125,7 @@ class VoiceCommandControllerTest {
         request.put("robotId", 1);
         request.put("userId", 9001);
 
-        mockMvc.perform(post("/api/voice/command")
+        mockMvc.perform(post("/api/voice/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(request)))
@@ -136,7 +148,7 @@ class VoiceCommandControllerTest {
         request.put("robotId", 1);
         request.put("userId", 9001);
 
-        mockMvc.perform(post("/api/voice/command")
+        mockMvc.perform(post("/api/voice/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(request)))
@@ -164,5 +176,12 @@ class VoiceCommandControllerTest {
         request.put("musicName", "小苹果");
         request.put("musicUrl", "/static/music/xiaopingguo.mp3");
         return request;
+    }
+
+    private static void authenticate(long userId) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                new AuthPrincipal(userId, UserRole.child),
+                null,
+                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }

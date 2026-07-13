@@ -16,11 +16,17 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartelderly.api.entertainment.RobotCommandLog;
 import com.smartelderly.api.entertainment.RobotCommandLogRepository;
+import com.smartelderly.domain.UserRole;
+import com.smartelderly.security.AuthPrincipal;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -33,6 +39,7 @@ class RobotControlControllerTest {
 
     @BeforeEach
     void setUp() {
+        authenticate(9001L);
         objectMapper = new ObjectMapper();
         gatewayClient = new CapturingGatewayClient();
         commandLogRepository = org.mockito.Mockito.mock(RobotCommandLogRepository.class);
@@ -40,6 +47,11 @@ class RobotControlControllerTest {
 
         RobotControlService service = new RobotControlService(gatewayClient, commandLogRepository, objectMapper);
         mockMvc = MockMvcBuilders.standaloneSetup(new RobotControlController(service)).build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -62,6 +74,7 @@ class RobotControlControllerTest {
         ArgumentCaptor<RobotCommandLog> captor = ArgumentCaptor.forClass(RobotCommandLog.class);
         verify(commandLogRepository, org.mockito.Mockito.times(2)).save(captor.capture());
         RobotCommandLog finalLog = captor.getAllValues().get(1);
+        org.junit.jupiter.api.Assertions.assertEquals(9001L, finalLog.getUserId());
         org.junit.jupiter.api.Assertions.assertEquals("control", finalLog.getCommandType());
         org.junit.jupiter.api.Assertions.assertEquals("forward", finalLog.getCommand());
         org.junit.jupiter.api.Assertions.assertEquals("success", finalLog.getStatus());
@@ -70,7 +83,7 @@ class RobotControlControllerTest {
 
     @Test
     void command_shouldRejectUnsupportedCommandWithoutCallingGateway() throws Exception {
-        mockMvc.perform(post("/api/robot/control/command")
+        mockMvc.perform(post("/api/robot/control/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"cmd\":\"spin\"}"))
                 .andExpect(status().isOk())
@@ -86,7 +99,7 @@ class RobotControlControllerTest {
     void command_shouldReturnGatewayUnavailableWhenClientCannotConnect() throws Exception {
         gatewayClient.commandFailure = new RobotGatewayUnavailableException("connect failed");
 
-        mockMvc.perform(post("/api/robot/control/command")
+        mockMvc.perform(post("/api/robot/control/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"cmd\":\"stop\"}"))
                 .andExpect(status().isOk())
@@ -104,7 +117,7 @@ class RobotControlControllerTest {
     void command_shouldKeepControlBlockReasonWhenGatewayRejectsCommand() throws Exception {
         gatewayClient.commandResponse = RobotGatewayCommandResponse.failure("控制失败", "emergency_stop_active");
 
-        mockMvc.perform(post("/api/robot/control/command")
+        mockMvc.perform(post("/api/robot/control/command").contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"cmd\":\"forward\"}"))
                 .andExpect(status().isOk())
@@ -153,7 +166,7 @@ class RobotControlControllerTest {
     void state_shouldReturnGatewayUnavailableWhenStateFetchFails() throws Exception {
         gatewayClient.stateFailure = new RobotGatewayUnavailableException("connect failed");
 
-        mockMvc.perform(get("/api/robot/control/state"))
+        mockMvc.perform(get("/api/robot/control/state").contextPath("/api"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("网关不可达"))
@@ -196,5 +209,12 @@ class RobotControlControllerTest {
             }
             return state;
         }
+    }
+
+    private static void authenticate(long userId) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                new AuthPrincipal(userId, UserRole.child),
+                null,
+                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }

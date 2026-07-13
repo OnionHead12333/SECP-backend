@@ -1,6 +1,7 @@
 package com.smartelderly.api.control;
 
 import com.smartelderly.api.inspection.InspectionApiResponse;
+import com.smartelderly.security.SecurityUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/robot/control", "/api/robot/control"})
+@RequestMapping("/robot/control")
 public class RobotControlController {
 
     private final RobotControlService robotControlService;
@@ -20,7 +21,8 @@ public class RobotControlController {
     @PostMapping("/command")
     public InspectionApiResponse<RobotControlCommandResult> sendCommand(
             @RequestBody RobotControlCommandRequest request) {
-        return robotControlService.sendCommand(request);
+        var principal = SecurityUtils.requireAuth();
+        return robotControlService.sendCommand(request, principal.userId());
     }
 
     @GetMapping("/state")

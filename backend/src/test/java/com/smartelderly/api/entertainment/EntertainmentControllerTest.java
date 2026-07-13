@@ -2,6 +2,7 @@ package com.smartelderly.api.entertainment;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,11 +19,18 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smartelderly.api.GlobalExceptionHandler;
+import com.smartelderly.domain.UserRole;
+import com.smartelderly.security.AuthPrincipal;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -36,13 +44,21 @@ class EntertainmentControllerTest {
 
     @BeforeEach
     void setUp() {
+        authenticate(9001L);
         objectMapper = new ObjectMapper();
         musicRepository = org.mockito.Mockito.mock(RobotMusicLibraryRepository.class);
         taskRepository = org.mockito.Mockito.mock(RobotEntertainmentTaskRepository.class);
         commandLogRepository = org.mockito.Mockito.mock(RobotCommandLogRepository.class);
         EntertainmentService service =
                 new EntertainmentService(musicRepository, taskRepository, commandLogRepository, objectMapper);
-        mockMvc = MockMvcBuilders.standaloneSetup(new EntertainmentController(service)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new EntertainmentController(service))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -71,17 +87,9 @@ class EntertainmentControllerTest {
     }
 
     @Test
-    void music_shouldAlsoSupportApiPrefixWithoutServletContextPath() throws Exception {
-        RobotMusicLibrary music = new RobotMusicLibrary();
-        music.setId(1L);
-        music.setMusicName("小苹果");
-        music.setMusicUrl("/static/music/xiaopingguo.mp3");
-        when(musicRepository.findByEnabledTrueOrderByIdAsc()).thenReturn(List.of(music));
-
-        mockMvc.perform(get("/api/entertainment/music"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data[0].musicName").value("小苹果"));
+    void music_shouldNotRegisterContextPathTwice() throws Exception {
+        mockMvc.perform(get("/api/api/entertainment/music").contextPath("/api"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -186,7 +194,7 @@ class EntertainmentControllerTest {
         RobotEntertainmentTask task = taskRow(22L);
         when(taskRepository.findByStatusOrderByCreatedAtAsc("pending")).thenReturn(List.of(task));
 
-        mockMvc.perform(get("/api/entertainment/tasks/pending"))
+        mockMvc.perform(get("/api/entertainment/tasks/pending").contextPath("/api"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("ok"))
@@ -215,7 +223,7 @@ class EntertainmentControllerTest {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("status", "running");
         request.put("message", "A 网关模拟：小车开始跳舞");
-        mockMvc.perform(put("/api/entertainment/tasks/{taskId}/status", 23)
+        mockMvc.perform(put("/api/entertainment/tasks/{taskId}/status", 23).contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(request)))
@@ -250,7 +258,7 @@ class EntertainmentControllerTest {
         Map<String, Object> request = new LinkedHashMap<>();
         request.put("status", "completed");
         request.put("message", "A 网关模拟：跳舞完成");
-        mockMvc.perform(put("/api/entertainment/tasks/{taskId}/status", 24)
+        mockMvc.perform(put("/api/entertainment/tasks/{taskId}/status", 24).contextPath("/api")
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .content(objectMapper.writeValueAsString(request)))
@@ -262,6 +270,26 @@ class EntertainmentControllerTest {
 
         org.junit.jupiter.api.Assertions.assertEquals("completed", task.getStatus());
         org.junit.jupiter.api.Assertions.assertNotNull(task.getFinishedAt());
+    }
+
+    @Test
+    void updateTaskStatus_shouldRejectDifferentTaskOwner() throws Exception {
+        authenticate(9002L);
+        RobotEntertainmentTask task = taskRow(25L);
+        when(taskRepository.findById(25L)).thenReturn(Optional.of(task));
+        Map<String, Object> request = Map.of(
+                "status", "completed",
+                "message", "done");
+
+        mockMvc.perform(put("/api/entertainment/tasks/{taskId}/status", 25).contextPath("/api")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(4030));
+
+        verify(taskRepository, never()).save(any(RobotEntertainmentTask.class));
+        verify(commandLogRepository, never()).save(any(RobotCommandLog.class));
     }
 
     @Test
@@ -315,5 +343,12 @@ class EntertainmentControllerTest {
         task.setStartedAt(LocalDateTime.of(2026, 7, 11, 10, 1));
         task.setFinishedAt(LocalDateTime.of(2026, 7, 11, 10, 2));
         return task;
+    }
+
+    private static void authenticate(long userId) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                new AuthPrincipal(userId, UserRole.child),
+                null,
+                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }
