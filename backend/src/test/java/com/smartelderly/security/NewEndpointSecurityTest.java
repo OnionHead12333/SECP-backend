@@ -187,6 +187,23 @@ class NewEndpointSecurityTest {
 
         assertThat(patterns).isNotEmpty();
         assertThat(patterns).noneMatch(pattern -> pattern.startsWith("/api/"));
+
+        assertThat(patternsFor(EntertainmentController.class))
+                .contains("/entertainment/music")
+                .doesNotContain("/api/entertainment/music", "/api/api/entertainment/music");
+        assertThat(patternsFor(RobotControlController.class))
+                .contains("/robot/control/command")
+                .doesNotContain("/api/robot/control/command", "/api/api/robot/control/command");
+        assertThat(patternsFor(VoiceCommandController.class))
+                .contains("/voice/command")
+                .doesNotContain("/api/voice/command", "/api/api/voice/command");
+    }
+
+    private Set<String> patternsFor(Class<?> controllerType) {
+        return handlerMapping.getHandlerMethods().entrySet().stream()
+                .filter(entry -> controllerType.equals(entry.getValue().getBeanType()))
+                .flatMap(entry -> entry.getKey().getPatternValues().stream())
+                .collect(Collectors.toSet());
     }
 
     private String childToken() {

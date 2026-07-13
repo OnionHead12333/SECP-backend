@@ -1,9 +1,11 @@
 package com.smartelderly.api.entertainment;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -32,7 +34,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 class EntertainmentControllerTest {
 
@@ -88,8 +92,17 @@ class EntertainmentControllerTest {
 
     @Test
     void music_shouldNotRegisterContextPathTwice() throws Exception {
-        mockMvc.perform(get("/api/api/entertainment/music").contextPath("/api"))
-                .andExpect(status().isNotFound());
+        MvcResult result = mockMvc.perform(get("/api/api/entertainment/music").contextPath("/api"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(5000))
+                .andReturn();
+
+        assertThat(result.getRequest().getRequestURI()).isEqualTo("/api/api/entertainment/music");
+        assertThat(result.getRequest().getContextPath()).isEqualTo("/api");
+        assertThat(result.getRequest().getServletPath()).isEmpty();
+        assertThat(result.getHandler()).isNull();
+        assertThat(result.getResolvedException()).isInstanceOf(NoHandlerFoundException.class);
+        verifyNoInteractions(musicRepository, taskRepository, commandLogRepository);
     }
 
     @Test
