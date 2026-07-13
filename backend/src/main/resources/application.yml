@@ -32,6 +32,10 @@ management:
     tags:
       application: ${spring.application.name}
 
+robot:
+  gateway:
+    base-url: ${ROBOT_GATEWAY_BASE_URL:http://127.0.0.1:7000}
+
 # 自定义：与 @ConfigurationProperties(prefix = "app") 绑定
 app:
   cors:

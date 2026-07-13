@@ -7,12 +7,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import com.smartelderly.api.control.RobotGatewayProperties;
 import com.smartelderly.config.AppProperties;
 
 @SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
 @EnableAsync
 @EnableScheduling
-@EnableConfigurationProperties(AppProperties.class)
+@EnableConfigurationProperties({AppProperties.class, RobotGatewayProperties.class})
 public class SmartElderlyCareApplication {
 
     public static void main(String[] args) {

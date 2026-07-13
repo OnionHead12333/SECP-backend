@@ -46,35 +46,68 @@ class InspectionMarkerControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("ok"))
-                .andExpect(jsonPath("$.data.mapId").value(1))
-                .andExpect(jsonPath("$.data.mapName").value("养老院一层"))
-                .andExpect(jsonPath("$.data.mapImage").value(""))
-                .andExpect(jsonPath("$.data.width").value(800))
-                .andExpect(jsonPath("$.data.height").value(600));
+                .andExpect(jsonPath("$.data.mapId").value("floor1"))
+                .andExpect(jsonPath("$.data.mapName").value("\u517b\u8001\u9662\u4e00\u5c42"))
+                .andExpect(jsonPath("$.data.mapImage").value("assets/robot_maps/yahboomcar.png"))
+                .andExpect(jsonPath("$.data.width").value(608))
+                .andExpect(jsonPath("$.data.height").value(384))
+                .andExpect(jsonPath("$.data.resolution").value(0.05))
+                .andExpect(jsonPath("$.data.originX").value(-10.0))
+                .andExpect(jsonPath("$.data.originY").value(-10.0))
+                .andExpect(jsonPath("$.data.imageHeight").value(384));
     }
 
     @Test
     void getMarkers_shouldReadMarkersFromRepository() throws Exception {
-        when(repository.findAllByOrderByIdAsc()).thenReturn(List.of(
-                markerRow(1L, "fall", "张爷爷疑似跌倒", 120.0, 240.0, "danger", "unhandled"),
-                markerRow(4L, "robot", "小车当前位置", 260.0, 300.0, "info", "active")));
+        RobotMapMarker fallMarker = markerRow(1L, "fall", "张爷爷疑似跌倒", 120.0, 240.0, "danger", "unhandled");
+        fallMarker.setDescription("张爷爷疑似在走廊区域跌倒");
+        fallMarker.setLocationName("一层东侧走廊");
+        fallMarker.setImageUrl("/static/mock/fall_001.jpg");
+        fallMarker.setElderProfileId(42L);
+        fallMarker.setElderName("张爷爷");
+        fallMarker.setIdentitySource("recent_identity");
+        fallMarker.setIdentityConfidence(0.89);
+        fallMarker.setNotifiedChild(true);
+
+        RobotMapMarker robotMarker = markerRow(4L, "robot", "小车当前位置", 260.0, 300.0, "info", "active");
+        robotMarker.setNavigationStatus("running");
+        robotMarker.setObstacleStatus("safe");
+        when(repository.findAllByOrderByIdAsc()).thenReturn(List.of(fallMarker, robotMarker));
 
         mockMvc.perform(apiGet("/api/inspection/markers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.length()").value(2))
                 .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.data[0].type").value("fall"))
                 .andExpect(jsonPath("$.data[0].title").value("张爷爷疑似跌倒"))
+                .andExpect(jsonPath("$.data[0].message").value("张爷爷疑似在走廊区域跌倒"))
+                .andExpect(jsonPath("$.data[0].description").value("张爷爷疑似在走廊区域跌倒"))
                 .andExpect(jsonPath("$.data[0].x").value(120.0))
                 .andExpect(jsonPath("$.data[0].y").value(240.0))
+                .andExpect(jsonPath("$.data[0].level").value("danger"))
+                .andExpect(jsonPath("$.data[0].imageUrl").value("/static/mock/fall_001.jpg"))
+                .andExpect(jsonPath("$.data[0].time").value("2026-07-10 16:30"))
+                .andExpect(jsonPath("$.data[0].status").value("unhandled"))
+                .andExpect(jsonPath("$.data[0].locationName").value("一层东侧走廊"))
+                .andExpect(jsonPath("$.data[0].elderId").value(42))
+                .andExpect(jsonPath("$.data[0].elderName").value("张爷爷"))
+                .andExpect(jsonPath("$.data[0].identitySource").value("recent_identity"))
+                .andExpect(jsonPath("$.data[0].identityConfidence").value(0.89))
+                .andExpect(jsonPath("$.data[0].notifiedChild").value(true))
+                .andExpect(jsonPath("$.data[0].source").value("mock"))
                 .andExpect(jsonPath("$.data[1].id").value(4))
-                .andExpect(jsonPath("$.data[1].type").value("robot"));
+                .andExpect(jsonPath("$.data[1].type").value("robot"))
+                .andExpect(jsonPath("$.data[1].navigationStatus").value("running"))
+                .andExpect(jsonPath("$.data[1].obstacleStatus").value("safe"));
     }
 
     @Test
     void getMarker_shouldReturnMarkerDetailById() throws Exception {
         RobotMapMarker marker = markerRow(1L, "fall", "张爷爷疑似跌倒", 120.0, 240.0, "danger", "unhandled");
         marker.setLocationName("一层东侧走廊");
+        marker.setDescription("摄像头检测到老人跌倒");
+        marker.setElderProfileId(42L);
         marker.setElderName("张爷爷");
         marker.setIdentitySource("recent_identity");
         marker.setIdentityConfidence(0.89);
@@ -87,6 +120,9 @@ class InspectionMarkerControllerTest {
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.type").value("fall"))
                 .andExpect(jsonPath("$.data.title").value("张爷爷疑似跌倒"))
+                .andExpect(jsonPath("$.data.message").value("摄像头检测到老人跌倒"))
+                .andExpect(jsonPath("$.data.description").value("摄像头检测到老人跌倒"))
+                .andExpect(jsonPath("$.data.elderId").value(42))
                 .andExpect(jsonPath("$.data.elderName").value("张爷爷"))
                 .andExpect(jsonPath("$.data.identitySource").value("recent_identity"))
                 .andExpect(jsonPath("$.data.identityConfidence").value(0.89))
@@ -162,6 +198,7 @@ class InspectionMarkerControllerTest {
         request.put("y", 180);
         request.put("level", "warning");
         request.put("status", "unhandled");
+        request.put("elderProfileId", 42);
         request.put("locationName", "一层大厅入口");
         request.put("source", "crack_detect");
         request.put("imageUrl", "/static/mock/crack_001.jpg");
@@ -181,6 +218,8 @@ class InspectionMarkerControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.id").value(99))
                 .andExpect(jsonPath("$.data.type").value("crack"))
+                .andExpect(jsonPath("$.data.message").value("入口处发现裂缝"))
+                .andExpect(jsonPath("$.data.description").value("入口处发现裂缝"))
                 .andExpect(jsonPath("$.data.source").value("crack_detect"))
                 .andExpect(jsonPath("$.data.payloadJson").value("{\"camera\":\"front\"}"));
 
@@ -188,6 +227,7 @@ class InspectionMarkerControllerTest {
         verify(repository).save(captor.capture());
         RobotMapMarker saved = captor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals(1L, saved.getMapId());
+        org.junit.jupiter.api.Assertions.assertEquals(42L, saved.getElderProfileId());
         org.junit.jupiter.api.Assertions.assertEquals("crack", saved.getMarkerType());
         org.junit.jupiter.api.Assertions.assertEquals(360.0, saved.getLocationX());
         org.junit.jupiter.api.Assertions.assertEquals("一层大厅入口", saved.getLocationName());

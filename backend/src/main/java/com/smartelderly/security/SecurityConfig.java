@@ -1,5 +1,6 @@
 package com.smartelderly.security;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -48,7 +49,20 @@ public class SecurityConfig {
                                 "/v1/health",
                                 "/api/v1/health")
                                 .permitAll()
-                        .requestMatchers("/inspection/**", "/api/inspection/**").permitAll()
+                        .requestMatchers(
+                                "/inspection/**",
+                                "/api/inspection/**",
+                                "/child/fall-alerts/**",
+                                "/api/child/fall-alerts/**",
+                                "/entertainment/**",
+                                "/api/entertainment/**",
+                                "/voice/**",
+                                "/api/voice/**",
+                                "/robot/control/**",
+                                "/api/robot/control/**",
+                                "/navigation/**",
+                                "/api/navigation/**")
+                                .permitAll()
                         // Prometheus 拉取指标、健康检查（路径不含 context-path）
                         .requestMatchers(
                                 "/actuator/health",
@@ -87,8 +101,8 @@ public class SecurityConfig {
 
     private static CorsConfigurationSource corsConfigurationSource(AppProperties appProperties) {
         CorsConfiguration configuration = new CorsConfiguration();
-        List<String> origins = appProperties.getCors().getAllowedOrigins();
-        configuration.setAllowedOrigins(origins == null || origins.isEmpty() ? List.of() : origins);
+        List<String> origins = withMapFrontendOrigins(appProperties.getCors().getAllowedOrigins());
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -96,5 +110,15 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private static List<String> withMapFrontendOrigins(List<String> configuredOrigins) {
+        List<String> origins = configuredOrigins == null ? new ArrayList<>() : new ArrayList<>(configuredOrigins);
+        for (String origin : List.of("http://localhost:54321", "http://127.0.0.1:54321")) {
+            if (!origins.contains(origin)) {
+                origins.add(origin);
+            }
+        }
+        return origins;
     }
 }

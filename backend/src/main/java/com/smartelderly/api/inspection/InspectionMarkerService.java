@@ -28,7 +28,16 @@ public class InspectionMarkerService {
     }
 
     public InspectionMapInfo getMapInfo() {
-        return new InspectionMapInfo(1L, "养老院一层", "", 800, 600);
+        return new InspectionMapInfo(
+                "floor1",
+                "\u517b\u8001\u9662\u4e00\u5c42",
+                "assets/robot_maps/yahboomcar.png",
+                608,
+                384,
+                0.05,
+                -10.0,
+                -10.0,
+                384);
     }
 
     @Transactional(readOnly = true)
@@ -64,12 +73,13 @@ public class InspectionMarkerService {
     private RobotMapMarker toEntity(InspectionMarker request) {
         RobotMapMarker marker = new RobotMapMarker();
         marker.setMapId(request.getMapId() == null ? DEFAULT_MAP_ID : request.getMapId());
+        marker.setElderProfileId(request.getElderId());
         marker.setMarkerType(request.getType());
         marker.setLocationX(request.getX());
         marker.setLocationY(request.getY());
         marker.setLocationName(request.getLocationName());
         marker.setTitle(request.getTitle());
-        marker.setDescription(request.getDescription());
+        marker.setDescription(firstPresent(request.getDescription(), request.getMessage()));
         marker.setLevel(request.getLevel());
         marker.setStatus(request.getStatus());
         marker.setSource(request.getSource());
@@ -89,8 +99,10 @@ public class InspectionMarkerService {
         InspectionMarker response = new InspectionMarker();
         response.setId(marker.getId());
         response.setMapId(marker.getMapId());
+        response.setElderId(marker.getElderProfileId());
         response.setType(marker.getMarkerType());
         response.setTitle(marker.getTitle());
+        response.setMessage(marker.getDescription());
         response.setDescription(marker.getDescription());
         response.setX(marker.getLocationX());
         response.setY(marker.getLocationY());
@@ -133,5 +145,9 @@ public class InspectionMarkerService {
 
     private static String formatHandleTime(LocalDateTime value) {
         return value == null ? null : value.format(HANDLE_TIME_FORMATTER);
+    }
+
+    private static String firstPresent(String preferred, String fallback) {
+        return preferred == null || preferred.isBlank() ? fallback : preferred;
     }
 }
