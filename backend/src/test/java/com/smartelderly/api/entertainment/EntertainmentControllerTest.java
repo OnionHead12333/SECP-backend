@@ -3,7 +3,6 @@ package com.smartelderly.api.entertainment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -22,17 +21,11 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartelderly.api.GlobalExceptionHandler;
-import com.smartelderly.domain.UserRole;
-import com.smartelderly.security.AuthPrincipal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -48,7 +41,6 @@ class EntertainmentControllerTest {
 
     @BeforeEach
     void setUp() {
-        authenticate(9001L);
         objectMapper = new ObjectMapper();
         musicRepository = org.mockito.Mockito.mock(RobotMusicLibraryRepository.class);
         taskRepository = org.mockito.Mockito.mock(RobotEntertainmentTaskRepository.class);
@@ -58,11 +50,6 @@ class EntertainmentControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new EntertainmentController(service))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -286,26 +273,6 @@ class EntertainmentControllerTest {
     }
 
     @Test
-    void updateTaskStatus_shouldRejectDifferentTaskOwner() throws Exception {
-        authenticate(9002L);
-        RobotEntertainmentTask task = taskRow(25L);
-        when(taskRepository.findById(25L)).thenReturn(Optional.of(task));
-        Map<String, Object> request = Map.of(
-                "status", "completed",
-                "message", "done");
-
-        mockMvc.perform(put("/api/entertainment/tasks/{taskId}/status", 25).contextPath("/api")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(4030));
-
-        verify(taskRepository, never()).save(any(RobotEntertainmentTask.class));
-        verify(commandLogRepository, never()).save(any(RobotCommandLog.class));
-    }
-
-    @Test
     void status_shouldReturnLatestEntertainmentTaskStatus() throws Exception {
         when(taskRepository.findFirstByOrderByCreatedAtDesc()).thenReturn(Optional.of(taskRow(21L)));
 
@@ -356,12 +323,5 @@ class EntertainmentControllerTest {
         task.setStartedAt(LocalDateTime.of(2026, 7, 11, 10, 1));
         task.setFinishedAt(LocalDateTime.of(2026, 7, 11, 10, 2));
         return task;
-    }
-
-    private static void authenticate(long userId) {
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                new AuthPrincipal(userId, UserRole.child),
-                null,
-                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }

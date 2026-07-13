@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.smartelderly.api.inspection.InspectionApiResponse;
-import com.smartelderly.security.SecurityUtils;
 
 @RestController
 @RequestMapping("/entertainment")
@@ -31,13 +30,13 @@ public class EntertainmentController {
     @PostMapping("/music/play")
     public InspectionApiResponse<EntertainmentTaskResponse> playMusic(
             @RequestBody EntertainmentCommandRequest request) {
-        return InspectionApiResponse.ok(entertainmentService.playMusic(authenticatedRequest(request)));
+        return InspectionApiResponse.ok(entertainmentService.playMusic(request));
     }
 
     @PostMapping("/dance/start")
     public InspectionApiResponse<EntertainmentTaskResponse> startDance(
             @RequestBody EntertainmentCommandRequest request) {
-        return InspectionApiResponse.ok(entertainmentService.startDance(authenticatedRequest(request)));
+        return InspectionApiResponse.ok(entertainmentService.startDance(request));
     }
 
     @GetMapping("/tasks")
@@ -54,8 +53,7 @@ public class EntertainmentController {
     public InspectionApiResponse<UpdateEntertainmentTaskStatusResponse> updateTaskStatus(
             @PathVariable long taskId,
             @RequestBody UpdateEntertainmentTaskStatusRequest request) {
-        var principal = SecurityUtils.requireAuth();
-        return entertainmentService.updateTaskStatus(taskId, request, principal.userId())
+        return entertainmentService.updateTaskStatus(taskId, request)
                 .map(response -> new InspectionApiResponse<>(true, "任务状态已更新", response))
                 .orElseGet(() -> InspectionApiResponse.fail("task not found"));
     }
@@ -63,16 +61,5 @@ public class EntertainmentController {
     @GetMapping("/status")
     public InspectionApiResponse<EntertainmentStatusResponse> getStatus() {
         return InspectionApiResponse.ok(entertainmentService.getLatestStatus());
-    }
-
-    private static EntertainmentCommandRequest authenticatedRequest(EntertainmentCommandRequest request) {
-        var principal = SecurityUtils.requireMatchingUserId(request.userId());
-        return new EntertainmentCommandRequest(
-                request.robotId(),
-                principal.userId(),
-                request.musicId(),
-                request.musicName(),
-                request.musicUrl(),
-                request.danceMode());
     }
 }

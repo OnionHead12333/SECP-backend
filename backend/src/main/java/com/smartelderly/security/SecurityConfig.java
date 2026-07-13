@@ -56,7 +56,7 @@ public class SecurityConfig {
                                 "/voice/**",
                                 "/robot/control/**",
                                 "/navigation/**")
-                                .authenticated()
+                                .permitAll()
                         // Prometheus 拉取指标、健康检查（路径不含 context-path）
                         .requestMatchers(
                                 "/actuator/health",

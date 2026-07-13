@@ -12,14 +12,8 @@ import java.util.Optional;
 
 import com.smartelderly.api.inspection.RobotMapMarker;
 import com.smartelderly.api.inspection.RobotMapMarkerRepository;
-import com.smartelderly.domain.UserRole;
-import com.smartelderly.security.AuthPrincipal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -30,15 +24,9 @@ class ChildFallAlertControllerTest {
 
     @BeforeEach
     void setUp() {
-        authenticate(101L);
         repository = org.mockito.Mockito.mock(RobotMapMarkerRepository.class);
         ChildFallAlertService service = new ChildFallAlertService(repository);
         mockMvc = MockMvcBuilders.standaloneSetup(new ChildFallAlertController(service)).build();
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -131,12 +119,5 @@ class ChildFallAlertControllerTest {
         marker.setIdentityConfidence(0.89);
         marker.setNotifiedChild(true);
         return marker;
-    }
-
-    private static void authenticate(long userId) {
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                new AuthPrincipal(userId, UserRole.child),
-                null,
-                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }

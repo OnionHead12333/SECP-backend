@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.smartelderly.security.SecurityUtils;
-
 @RestController
 @RequestMapping("/inspection")
 public class InspectionMarkerController {
@@ -41,16 +39,14 @@ public class InspectionMarkerController {
 
     @PostMapping("/markers")
     public InspectionApiResponse<InspectionMarker> createMarker(@RequestBody InspectionMarker request) {
-        var principal = SecurityUtils.requireAuth();
-        return InspectionApiResponse.ok(inspectionMarkerService.createMarker(request, principal.userId()));
+        return InspectionApiResponse.ok(inspectionMarkerService.createMarker(request));
     }
 
     @PutMapping("/markers/{id}/handle")
     public InspectionApiResponse<InspectionMarker> handleMarker(
             @PathVariable long id,
             @RequestBody InspectionHandleRequest request) {
-        var principal = SecurityUtils.requireAuth();
-        return inspectionMarkerService.handleMarker(id, request, principal.userId())
+        return inspectionMarkerService.handleMarker(id, request)
                 .map(InspectionApiResponse::ok)
                 .orElseGet(() -> InspectionApiResponse.fail("marker not found"));
     }

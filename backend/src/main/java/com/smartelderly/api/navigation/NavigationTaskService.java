@@ -3,7 +3,6 @@ package com.smartelderly.api.navigation;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import com.smartelderly.api.ApiException;
 import com.smartelderly.api.inspection.RobotMapMarker;
 import com.smartelderly.api.inspection.RobotMapMarkerRepository;
 import org.springframework.stereotype.Service;
@@ -78,12 +77,9 @@ public class NavigationTaskService {
     }
 
     @Transactional
-    public Optional<NavigationTaskResponse> cancelTask(long id, long userId) {
+    public Optional<NavigationTaskResponse> cancelTask(long id) {
         return taskRepository.findById(id)
                 .map(task -> {
-                    if (task.getCreatorId() == null || task.getCreatorId().longValue() != userId) {
-                        throw new ApiException(4030, "forbidden");
-                    }
                     task.setStatus("cancelled");
                     task.setFinishedAt(LocalDateTime.now());
                     RobotNavigationTask savedTask = taskRepository.save(task);

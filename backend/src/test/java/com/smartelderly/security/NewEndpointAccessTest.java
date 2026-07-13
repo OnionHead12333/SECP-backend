@@ -4,14 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,7 +32,6 @@ import com.smartelderly.api.navigation.NavigationTaskService;
 import com.smartelderly.api.voice.VoiceCommandController;
 import com.smartelderly.api.voice.VoiceCommandService;
 import com.smartelderly.config.AppProperties;
-import com.smartelderly.domain.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,15 +66,12 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
         JsonAccessDeniedHandler.class,
         GlobalExceptionHandler.class
 })
-class NewEndpointSecurityTest {
+class NewEndpointAccessTest {
 
     private static final long CHILD_USER_ID = 101L;
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private JwtService jwtService;
 
     @Autowired
     @Qualifier("requestMappingHandlerMapping")
@@ -102,64 +96,30 @@ class NewEndpointSecurityTest {
     private InspectionMarkerService inspectionMarkerService;
 
     @Test
-    void robotWrite_withoutToken_isBlocked() throws Exception {
-        mockMvc.perform(post("/api/robot/control/command").contextPath("/api")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"cmd\":\"stop\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(4010));
-
-        verifyNoInteractions(robotControlService);
-    }
-
-    @Test
-    void fallAlerts_withoutToken_isBlocked() throws Exception {
-        mockMvc.perform(get("/api/child/fall-alerts").contextPath("/api")
-                        .param("childUserId", Long.toString(CHILD_USER_ID)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(4010));
-
-        verifyNoInteractions(childFallAlertService);
-    }
-
-    @Test
-    void robotWrite_withValidJwt_reachesController() throws Exception {
-        when(robotControlService.sendCommand(any(RobotControlCommandRequest.class), eq(CHILD_USER_ID)))
+    void robotWrite_withoutToken_reachesController() throws Exception {
+        when(robotControlService.sendCommand(any(RobotControlCommandRequest.class)))
                 .thenReturn(InspectionApiResponse.ok(new RobotControlCommandResult("stop", null)));
 
         mockMvc.perform(post("/api/robot/control/command").contextPath("/api")
-                        .header("Authorization", bearer(childToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"cmd\":\"stop\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.cmd").value("stop"));
 
-        verify(robotControlService).sendCommand(any(RobotControlCommandRequest.class), eq(CHILD_USER_ID));
+        verify(robotControlService).sendCommand(any(RobotControlCommandRequest.class));
     }
 
     @Test
-    void fallAlerts_withMatchingChildJwt_usesPrincipalUserId() throws Exception {
+    void fallAlerts_withoutToken_usesRequestedUserId() throws Exception {
         when(childFallAlertService.listFallAlerts(CHILD_USER_ID)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/child/fall-alerts").contextPath("/api")
-                        .header("Authorization", bearer(childToken()))
                         .param("childUserId", Long.toString(CHILD_USER_ID)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(childFallAlertService).listFallAlerts(CHILD_USER_ID);
-    }
-
-    @Test
-    void fallAlerts_withDifferentChildUserId_isForbidden() throws Exception {
-        mockMvc.perform(get("/api/child/fall-alerts").contextPath("/api")
-                        .header("Authorization", bearer(childToken()))
-                        .param("childUserId", "202"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(4030));
-
-        verifyNoInteractions(childFallAlertService);
+        verify(childFallAlertService).listFallAlerts(eq(CHILD_USER_ID));
     }
 
     @Test
@@ -204,16 +164,5 @@ class NewEndpointSecurityTest {
                 .filter(entry -> controllerType.equals(entry.getValue().getBeanType()))
                 .flatMap(entry -> entry.getKey().getPatternValues().stream())
                 .collect(Collectors.toSet());
-    }
-
-    private String childToken() {
-        return jwtService.issueToken(
-                CHILD_USER_ID,
-                UserRole.child,
-                Instant.now().plusSeconds(300));
-    }
-
-    private static String bearer(String token) {
-        return "Bearer " + token;
     }
 }

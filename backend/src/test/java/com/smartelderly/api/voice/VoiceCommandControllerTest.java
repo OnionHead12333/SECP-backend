@@ -19,16 +19,10 @@ import com.smartelderly.api.entertainment.RobotCommandLogRepository;
 import com.smartelderly.api.entertainment.RobotEntertainmentTask;
 import com.smartelderly.api.entertainment.RobotEntertainmentTaskRepository;
 import com.smartelderly.api.entertainment.RobotMusicLibraryRepository;
-import com.smartelderly.domain.UserRole;
-import com.smartelderly.security.AuthPrincipal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -41,7 +35,6 @@ class VoiceCommandControllerTest {
 
     @BeforeEach
     void setUp() {
-        authenticate(9001L);
         objectMapper = new ObjectMapper();
         RobotMusicLibraryRepository musicRepository = org.mockito.Mockito.mock(RobotMusicLibraryRepository.class);
         taskRepository = org.mockito.Mockito.mock(RobotEntertainmentTaskRepository.class);
@@ -51,11 +44,6 @@ class VoiceCommandControllerTest {
         VoiceCommandService voiceCommandService =
                 new VoiceCommandService(entertainmentService, commandLogRepository, objectMapper);
         mockMvc = MockMvcBuilders.standaloneSetup(new VoiceCommandController(voiceCommandService)).build();
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -176,12 +164,5 @@ class VoiceCommandControllerTest {
         request.put("musicName", "小苹果");
         request.put("musicUrl", "/static/music/xiaopingguo.mp3");
         return request;
-    }
-
-    private static void authenticate(long userId) {
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                new AuthPrincipal(userId, UserRole.child),
-                null,
-                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }

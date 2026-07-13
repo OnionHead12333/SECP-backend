@@ -37,16 +37,14 @@ public class RobotControlService {
     }
 
     @Transactional
-    public InspectionApiResponse<RobotControlCommandResult> sendCommand(
-            RobotControlCommandRequest request,
-            long userId) {
+    public InspectionApiResponse<RobotControlCommandResult> sendCommand(RobotControlCommandRequest request) {
         String cmd = normalizeCommand(request == null ? null : request.cmd());
         if (!SUPPORTED_COMMANDS.contains(cmd)) {
             return InspectionApiResponse.fail("不支持的控制命令");
         }
 
         RobotGatewayCommandRequest gatewayRequest = new RobotGatewayCommandRequest("control", cmd);
-        RobotCommandLog commandLog = createSentLog(cmd, gatewayRequest, userId);
+        RobotCommandLog commandLog = createSentLog(cmd, gatewayRequest);
         commandLogRepository.save(commandLog);
 
         try {
@@ -73,12 +71,8 @@ public class RobotControlService {
         }
     }
 
-    private RobotCommandLog createSentLog(
-            String cmd,
-            RobotGatewayCommandRequest gatewayRequest,
-            long userId) {
+    private RobotCommandLog createSentLog(String cmd, RobotGatewayCommandRequest gatewayRequest) {
         RobotCommandLog commandLog = new RobotCommandLog();
-        commandLog.setUserId(userId);
         commandLog.setCommandType("control");
         commandLog.setCommand(cmd);
         commandLog.setRequestJson(toJson(gatewayRequest));

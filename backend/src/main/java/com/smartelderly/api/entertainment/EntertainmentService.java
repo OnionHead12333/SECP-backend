@@ -3,13 +3,11 @@ package com.smartelderly.api.entertainment;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smartelderly.api.ApiException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,17 +74,13 @@ public class EntertainmentService {
     @Transactional
     public Optional<UpdateEntertainmentTaskStatusResponse> updateTaskStatus(
             long taskId,
-            UpdateEntertainmentTaskStatusRequest request,
-            long userId) {
+            UpdateEntertainmentTaskStatusRequest request) {
         String status = normalizeStatus(request.status());
         if (!ALLOWED_TASK_STATUSES.contains(status)) {
             throw new IllegalArgumentException("unsupported entertainment task status: " + status);
         }
         return taskRepository.findById(taskId)
                 .map(task -> {
-                    if (!Objects.equals(task.getUserId(), userId)) {
-                        throw new ApiException(4030, "forbidden");
-                    }
                     LocalDateTime now = LocalDateTime.now();
                     task.setStatus(status);
                     task.setResponseMessage(request.message());

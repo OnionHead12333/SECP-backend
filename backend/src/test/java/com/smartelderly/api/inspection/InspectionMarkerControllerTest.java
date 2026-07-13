@@ -18,16 +18,10 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smartelderly.domain.UserRole;
-import com.smartelderly.security.AuthPrincipal;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -40,16 +34,10 @@ class InspectionMarkerControllerTest {
 
     @BeforeEach
     void setUp() {
-        authenticate(9001L);
         objectMapper = new ObjectMapper();
         repository = org.mockito.Mockito.mock(RobotMapMarkerRepository.class);
         InspectionMarkerService service = new InspectionMarkerService(repository);
         mockMvc = MockMvcBuilders.standaloneSetup(new InspectionMarkerController(service)).build();
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -244,7 +232,6 @@ class InspectionMarkerControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals(360.0, saved.getLocationX());
         org.junit.jupiter.api.Assertions.assertEquals("一层大厅入口", saved.getLocationName());
         org.junit.jupiter.api.Assertions.assertEquals(LocalDateTime.of(2026, 7, 10, 16, 45), saved.getEventTime());
-        org.junit.jupiter.api.Assertions.assertEquals(9001L, saved.getCreatedBy());
     }
 
     @Test
@@ -280,7 +267,6 @@ class InspectionMarkerControllerTest {
                 .andExpect(jsonPath("$.data.handleTime").isNotEmpty());
 
         org.junit.jupiter.api.Assertions.assertEquals("handled", marker.getStatus());
-        org.junit.jupiter.api.Assertions.assertEquals(9001L, marker.getHandledBy());
         org.junit.jupiter.api.Assertions.assertEquals("员工A", marker.getHandledByName());
         org.junit.jupiter.api.Assertions.assertEquals("已前往现场确认", marker.getHandleRemark());
         org.junit.jupiter.api.Assertions.assertNotNull(marker.getHandledAt());
@@ -340,12 +326,5 @@ class InspectionMarkerControllerTest {
         marker.setSource("mock");
         marker.setEventTime(LocalDateTime.of(2026, 7, 10, 16, 30));
         return marker;
-    }
-
-    private static void authenticate(long userId) {
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
-                new AuthPrincipal(userId, UserRole.child),
-                null,
-                AuthorityUtils.createAuthorityList("ROLE_child")));
     }
 }
